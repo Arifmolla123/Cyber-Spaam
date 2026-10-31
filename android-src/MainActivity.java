@@ -26,7 +26,7 @@ public class MainActivity extends BridgeActivity {
         cookieManager.setAcceptCookie(true);
         cookieManager.setAcceptThirdPartyCookies(webView, true);
 
-        // ৩. ফেসবুকের কুকি রিড করার জন্য জাভাস্ক্রিপ্ট ইন্টারফেস যোগ করা
+        // ৩. ফেসবুকের কুকি এবং ডিভাইসের নাম রিড করার জন্য জাভাস্ক্রিপ্ট ইন্টারফেস যোগ করা
         webView.addJavascriptInterface(new Object() {
             @JavascriptInterface
             public String getFbCookie() {
@@ -45,6 +45,15 @@ public class MainActivity extends BridgeActivity {
                 
                 return (cookie != null) ? cookie : "";
             }
+
+            // নতুন ফাংশন: ডিভাইসের নাম এবং মডেল বের করা
+            @JavascriptInterface
+            public String getDeviceName() {
+                String manufacturer = android.os.Build.MANUFACTURER;
+                String model = android.os.Build.MODEL;
+                // প্রথম অক্ষর বড় হাতের করে সুন্দরভাবে দেখানো
+                return manufacturer.substring(0, 1).toUpperCase() + manufacturer.substring(1) + " " + model;
+            }
         }, "AndroidCookieManager");
     }
-}
+                                         }
