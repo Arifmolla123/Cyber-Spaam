@@ -29,6 +29,12 @@ jobs:
         
       - name: Add Android Platform
         run: npx cap add android
+
+      # ═══════════════════════════════════════════════════════════════
+      # নতুন ধাপ: এখানে icon.png থেকে সব সাইজের আইকন তৈরি হবে
+      # ═══════════════════════════════════════════════════════════════
+      - name: Generate App Icons
+        run: npx @capacitor/assets generate --android
         
       - name: Overwrite MainActivity.java (Cookie Grabber)
         run: |
