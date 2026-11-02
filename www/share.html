@@ -1,0 +1,108 @@
+<!-- language: HTML, file: www/share.html -->
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Share & Earn - Cyber Spaam</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&display=swap');
+    :root { --bg-color: #0b0f19; --card-bg: rgba(20, 25, 35, 0.85); --primary: #00ff41; --primary-glow: rgba(0, 255, 65, 0.4); --text-main: #e2e8f0; --text-muted: #94a3b8; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Rajdhani', sans-serif; user-select: none; }
+    body { background-color: var(--bg-color); background-image: radial-gradient(circle at 15% 50%, rgba(0, 255, 65, 0.05), transparent 25%); color: var(--text-main); display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+    .app-container { width: 100%; max-width: 400px; background: var(--card-bg); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 20px; padding: 30px 24px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7); position: relative; animation: fadeIn 0.5s ease-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    .app-container::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, transparent, var(--primary), transparent); opacity: 0.7; }
+    h1 { font-size: 26px; text-align: center; color: var(--primary); text-shadow: 0 0 15px var(--primary-glow); margin-bottom: 8px; letter-spacing: 1px; }
+    .subtitle { text-align: center; color: var(--text-muted); font-size: 14px; margin-bottom: 20px; text-transform: uppercase; }
+    .btn { width: 100%; padding: 16px; border: none; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; gap: 10px; text-transform: uppercase; margin-top: 15px; }
+    .btn:active { transform: scale(0.97); }
+    .btn-primary { background: var(--primary); color: #000; box-shadow: 0 4px 15px var(--primary-glow); }
+    .btn-outline { background: transparent; border: 1px solid #334155; color: var(--text-muted); }
+    .ref-box { background: #0f172a; border: 1px dashed var(--primary); border-radius: 12px; padding: 15px; text-align: center; margin-bottom: 15px; }
+    .ref-box p { font-size: 12px; color: var(--text-muted); margin-bottom: 5px; text-transform: uppercase; }
+    .ref-link { font-size: 14px; color: #fff; word-break: break-all; font-weight: 600; }
+    .points-card { background: #0f172a; border: 1px solid #1e293b; border-radius: 12px; padding: 15px; text-align: center; margin-bottom: 20px; }
+    .points-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; }
+    .points-value { font-size: 28px; font-weight: 700; color: #facc15; text-shadow: 0 0 10px rgba(250, 204, 21, 0.3); }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    <h1>REFER & EARN</h1>
+    <p class="subtitle">Get +1 Point per friend</p>
+
+    <div class="points-card">
+      <div class="points-label">Your Total Referrals</div>
+      <div class="points-value" id="refCount">0</div>
+    </div>
+
+    <div class="ref-box">
+      <p>Your Referral Link</p>
+      <div class="ref-link" id="refLink">Loading...</div>
+    </div>
+
+    <button class="btn btn-primary" onclick="copyLink()">Copy & Share Link</button>
+    <button class="btn btn-outline" onclick="goBack()">Back to Dashboard</button>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getDatabase, ref, get, child } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+    // ফায়ারবেস কনফিগ
+    const firebaseConfig = {
+      apiKey: "AIzaSyC22mPef-Lsi4qqTMZwmQ2WlcUtSTCiIP0",
+      authDomain: "cyber-spaam.firebaseapp.com",
+      databaseURL: "https://cyber-spaam-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "cyber-spaam",
+      storageBucket: "cyber-spaam.firebasestorage.app",
+      messagingSenderId: "180047004522",
+      appId: "1:180047004522:web:470d5c50f2e333916d9b13"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // লোকাল স্টোরেজ থেকে ইউজার কি (Key) নেওয়া
+    const userKey = localStorage.getItem('cyber_key');
+    let baseUrl = window.location.origin; // যেমন: https://your-app.vercel.app
+    let referralLink = "";
+
+    window.onload = async function() {
+      if (!userKey) {
+        window.location.href = "index.html"; // লগইন না থাকলে ফেরত
+        return;
+      }
+
+      // রেফারেল লিংক তৈরি (এখানে তোমার APK ডাউনলোড লিংক বা সাইটের লিংক দিতে পারো)
+      // আপাতত আমরা সাইটের লিংক দিচ্ছি, পরে তুমি চাইলে গুগল ড্রাইভের APK লিংক বসাতে পারো।
+      referralLink = baseUrl + "/index.html?ref=" + userKey;
+      document.getElementById('refLink').innerText = referralLink;
+
+      // ফায়ারবেস থেকে ইউজারের রেফারেল কাউন্ট দেখা
+      try {
+        const snapshot = await get(child(ref(db), `users/${userKey}`));
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          document.getElementById('refCount').innerText = data.referrals || 0;
+        }
+      } catch (e) { console.log(e); }
+    }
+
+    window.copyLink = function() {
+      navigator.clipboard.writeText(referralLink).then(() => {
+        alert("✅ Referral link copied! Share it with your friends.");
+      }).catch(() => {
+        alert("Failed to copy. Please select and copy manually.");
+      });
+    }
+
+    window.goBack = function() {
+      window.location.href = "index.html";
+    }
+  </script>
+</body>
+  </html>
