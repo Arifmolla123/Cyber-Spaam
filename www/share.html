@@ -68,7 +68,11 @@
 
     // লোকাল স্টোরেজ থেকে ইউজার কি (Key) নেওয়া
     const userKey = localStorage.getItem('cyber_key');
-    let baseUrl = window.location.origin; // যেমন: https://your-app.vercel.app
+    
+    // ═══════════════════════════════════════════════════════════════
+    // এখানে তোমার MediaFire এর ডাইরেক্ট ডাউনলোড লিংক বসানো হলো
+    // ═══════════════════════════════════════════════════════════════
+    let baseUrl = "https://www.mediafire.com/file/2yiegz39lrq2rzp/Cyber+Spaam_1.0.apk/download";
     let referralLink = "";
 
     window.onload = async function() {
@@ -77,9 +81,8 @@
         return;
       }
 
-      // রেফারেল লিংক তৈরি (এখানে তোমার APK ডাউনলোড লিংক বা সাইটের লিংক দিতে পারো)
-      // আপাতত আমরা সাইটের লিংক দিচ্ছি, পরে তুমি চাইলে গুগল ড্রাইভের APK লিংক বসাতে পারো।
-      referralLink = baseUrl + "/index.html?ref=" + userKey;
+      // রেফারেল লিংক তৈরি (এখানে তোমার APK ডাউনলোড লিংক যুক্ত হলো)
+      referralLink = baseUrl + "?ref=" + userKey;
       document.getElementById('refLink').innerText = referralLink;
 
       // ফায়ারবেস থেকে ইউজারের রেফারেল কাউন্ট দেখা
@@ -105,4 +108,4 @@
     }
   </script>
 </body>
-  </html>
+</html>
