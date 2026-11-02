@@ -1,0 +1,154 @@
+<!-- language: HTML, file: www/history.html -->
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Attack History - Cyber Spaam</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&display=swap');
+    :root { --bg-color: #0b0f19; --card-bg: #151f32; --primary: #00ff41; --primary-glow: rgba(0, 255, 65, 0.4); --text-main: #e2e8f0; --text-muted: #94a3b8; --nav-bg: #0f172a; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Rajdhani', sans-serif; user-select: none; }
+    body { background-color: var(--bg-color); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; }
+    .top-bar { background: var(--nav-bg); padding: 15px 20px; text-align: center; border-bottom: 1px solid #1e293b; position: sticky; top: 0; z-index: 100; }
+    .top-bar h1 { font-size: 22px; color: var(--primary); text-shadow: 0 0 10px var(--primary-glow); letter-spacing: 2px; cursor: pointer; }
+    .content-area { flex: 1; padding: 20px; display: flex; flex-direction: column; align-items: center; overflow-y: auto; padding-bottom: 90px; }
+    .history-card { width: 100%; max-width: 400px; background: var(--card-bg); border-radius: 12px; padding: 15px; margin-bottom: 10px; border-left: 4px solid #1e293b; display: flex; flex-direction: column; gap: 5px; }
+    .history-card p { font-size: 14px; color: var(--text-muted); word-break: break-all; }
+    .history-card .url { color: var(--text-main); font-weight: 600; }
+    .status { font-weight: 700; text-transform: uppercase; font-size: 12px; padding: 3px 8px; border-radius: 4px; width: fit-content; }
+    .status-completed { background: rgba(0, 255, 65, 0.1); color: var(--primary); border: 1px solid var(--primary); }
+    .status-pending { background: rgba(250, 204, 21, 0.1); color: #facc15; border: 1px solid #facc15; }
+    .status-running { background: rgba(59, 130, 246, 0.1); color: #3b82f6; border: 1px solid #3b82f6; }
+    .status-failed { background: rgba(255, 51, 51, 0.1); color: #ff3333; border: 1px solid #ff3333; }
+    .btn { width: 100%; padding: 16px; border: none; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; text-transform: uppercase; margin-top: 20px; }
+    .btn-outline { background: transparent; border: 1px solid #334155; color: var(--text-muted); }
+    .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; height: 70px; background: var(--nav-bg); border-top: 1px solid #1e293b; display: flex; justify-content: space-around; align-items: center; z-index: 1000; }
+    .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-muted); text-decoration: none; font-size: 11px; font-weight: 600; cursor: pointer; width: 33%; height: 100%; }
+    .nav-item.active { color: var(--primary); }
+    .nav-icon { width: 24px; height: 24px; margin-bottom: 4px; fill: currentColor; }
+  </style>
+</head>
+<body>
+
+  <div class="top-bar">
+    <h1>ATTACK HISTORY</h1>
+  </div>
+
+  <div class="content-area" id="historyList">
+    <p style="color: var(--text-muted);">Loading history...</p>
+  </div>
+
+  <div class="bottom-nav">
+    <div class="nav-item" onclick="window.location.href='index.html'">
+      <svg class="nav-icon" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+      Home
+    </div>
+    <div class="nav-item" onclick="window.location.href='share.html'">
+      <svg class="nav-icon" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/></svg>
+      Refer
+    </div>
+    <div class="nav-item active">
+      <svg class="nav-icon" viewBox="0 0 24 24"><path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>
+      History
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getDatabase, ref, query, orderByChild, equalTo, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyC22mPef-Lsi4qqTMZwmQ2WlcUtSTCiIP0",
+      authDomain: "cyber-spaam.firebaseapp.com",
+      databaseURL: "https://cyber-spaam-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "cyber-spaam",
+      storageBucket: "cyber-spaam.firebasestorage.app",
+      messagingSenderId: "180047004522",
+      appId: "1:180047004522:web:470d5c50f2e333916d9b13"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // ধাপ ১: তোমার index.html-এর launchAttack ফাংশনে জব আইডি সেভ করার কোড আছে কি না দেখে নাও।
+    // আমরা এখানে ইউজারের শেষ ১০টি অ্যাটাকের হিস্ট্রি দেখাবো।
+    
+    window.onload = async function() {
+      const userKey = localStorage.getItem('cyber_key');
+      const listDiv = document.getElementById('historyList');
+      
+      if (!userKey) {
+        window.location.href = "index.html";
+        return;
+      }
+
+      try {
+        // ফায়ারবেস থেকে এই ইউজারের সব অ্যাটাক খোঁজা
+        const jobsRef = ref(db, 'jobs');
+        const snapshot = await get(jobsRef);
+        
+        if (!snapshot.exists()) {
+          listDiv.innerHTML = '<p style="color: var(--text-muted);">No attacks found.</p>';
+          return;
+        }
+
+        let userJobs = [];
+        snapshot.forEach(child => {
+          const job = child.val();
+          // যদি এই জবটি এই ইউজার নিজে করে থাকে
+          if (job.userKey === userKey) {
+            userJobs.push({ id: child.key, ...job });
+          }
+        });
+
+        // নতুন অ্যাটাকগুলো সবার আগে দেখানোর জন্য সর্ট করা
+        userJobs.sort((a, b) => b.createdAt - a.createdAt);
+
+        if (userJobs.length === 0) {
+          listDiv.innerHTML = '<p style="color: var(--text-muted);">No recent attacks found.</p>';
+          return;
+        }
+
+        listDiv.innerHTML = ''; // ক্লিয়ার
+
+        userJobs.forEach(job => {
+          const card = document.createElement('div');
+          card.className = 'history-card';
+          
+          let statusClass = '';
+          let statusText = '';
+          
+          if (job.status === 'completed') {
+            statusClass = 'status-completed';
+            statusText = '✅ Success';
+          } else if (job.status === 'pending') {
+            statusClass = 'status-pending';
+            statusText = '🟡 Pending';
+          } else if (job.status === 'running') {
+            statusClass = 'status-running';
+            statusText = '🔵 Running';
+          } else {
+            statusClass = 'status-failed';
+            statusText = '❌ Failed';
+          }
+
+          // তারিখ ফরম্যাট
+          const date = new Date(job.createdAt).toLocaleString();
+
+          card.innerHTML = `
+            <span class="status ${statusClass}">${statusText}</span>
+            <p class="url">${job.targetUrl}</p>
+            <p style="font-size: 12px;">${date}</p>
+          `;
+          listDiv.appendChild(card);
+        });
+
+      } catch (e) {
+        listDiv.innerHTML = '<p style="color: red;">Error loading history.</p>';
+        console.log(e);
+      }
+    }
+  </script>
+</body>
+  </html>
