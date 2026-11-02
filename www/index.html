@@ -32,7 +32,6 @@
       flex-direction: column;
     }
 
-    /* টপ বার */
     .top-bar {
       background: var(--nav-bg);
       padding: 15px 20px;
@@ -51,7 +50,6 @@
       cursor: pointer;
     }
 
-    /* মূল কন্টেন্ট এরিয়া */
     .content-area {
       flex: 1;
       padding: 20px;
@@ -59,7 +57,7 @@
       flex-direction: column;
       align-items: center;
       overflow-y: auto;
-      padding-bottom: 90px; /* নেভিগেশন বারের জন্য জায়গা */
+      padding-bottom: 90px;
     }
 
     .card {
@@ -73,7 +71,6 @@
       margin-bottom: 20px;
     }
 
-    /* লগইন প্যানেল */
     .login-panel {
       display: flex;
       flex-direction: column;
@@ -96,7 +93,6 @@
       text-transform: uppercase;
     }
 
-    /* বাটন স্টাইল */
     .btn {
       width: 100%;
       padding: 16px;
@@ -121,7 +117,6 @@
     .btn-success { background: var(--primary); color: #000; box-shadow: 0 4px 15px var(--primary-glow); }
     .btn-danger { background: var(--danger); color: #fff; box-shadow: 0 4px 15px rgba(255, 51, 51, 0.3); }
 
-    /* ড্যাশবোর্ড স্টাইল */
     .status-badge {
       display: inline-flex;
       align-items: center;
@@ -186,7 +181,6 @@
     .spinner { width: 20px; height: 20px; border: 3px solid rgba(0,0,0,0.2); border-top-color: #000; border-radius: 50%; animation: spin 1s linear infinite; display: none; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ═══ বটম নেভিগেশন বার ═══ */
     .bottom-nav {
       position: fixed;
       bottom: 0;
@@ -211,7 +205,7 @@
       font-size: 11px;
       font-weight: 600;
       cursor: pointer;
-      width: 25%;
+      width: 20%; /* ৫টি বাটনের জন্য ২০% করা হলো */
       height: 100%;
       transition: all 0.2s;
     }
@@ -281,27 +275,33 @@
       </div>
     </div>
 
-    <!-- ═══ বটম নেভিগেশন বার ═══ -->
+    <!-- ═══ বটম নেভিগেশন বার (৫টি বাটন) ═══ -->
     <div class="bottom-nav">
-      <!-- হোম বাটন (একটিভ) -->
+      <!-- হোম -->
       <div class="nav-item active" onclick="window.scrollTo(0,0)">
         <svg class="nav-icon" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
         Home
       </div>
       
-      <!-- রেফার বাটন -->
+      <!-- রেফার -->
       <div class="nav-item" onclick="goToShare()">
         <svg class="nav-icon" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/></svg>
         Refer
       </div>
 
-      <!-- বাই পয়েন্ট (হোয়াটসঅ্যাপ) বাটন -->
+      <!-- বাই (হোয়াটসঅ্যাপ) -->
       <div class="nav-item" onclick="buyPoints()" style="color: var(--whatsapp-color);">
         <svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1.64 14.71c-.15.06-.33.09-.52.09-.16 0-.34-.03-.54-.08-.19-.06-.35-.12-.48-.19-.68-.35-1.4-.75-2.15-1.38-.64-.54-1.14-1.11-1.49-1.74-.07-.13-.13-.29-.19-.48-.05-.2-.08-.38-.08-.54 0-.19.03-.37.09-.52.07-.15.18-.33.35-.53l.51-.61c.16-.19.24-.4.24-.62 0-.16-.04-.32-.12-.49-.08-.17-.2-.4-.36-.67-.16-.27-.27-.45-.33-.55-.07-.12-.16-.19-.27-.23-.11-.04-.24-.05-.4-.05-.32 0-.6.12-.84.35-.24.23-.45.53-.64.91-.19.38-.29.79-.29 1.24 0 .55.14 1.11.41 1.68.28.57.63 1.09 1.06 1.57.43.47.9.86 1.41 1.16.51.3 1.01.45 1.5.45.45 0 .87-.1 1.25-.3.38-.2.69-.45.91-.76.23-.31.35-.62.35-.91 0-.15-.02-.27-.05-.37-.03-.1-.1-.17-.21-.22zm-2.82-6.35c-.15 0-.31.02-.46.05-.15.04-.28.09-.38.16-.1.07-.18.15-.22.25-.04.1-.07.21-.07.32 0 .11.02.21.06.32.04.11.11.21.2.31l.46.46c.17.17.34.31.51.4.16.09.32.13.46.13.16 0 .31-.04.44-.11.13-.07.24-.17.32-.29l.38-.5c.08-.11.14-.22.18-.32.04-.11.06-.22.06-.32 0-.11-.02-.21-.06-.32-.04-.11-.11-.2-.2-.3-.17-.17-.37-.3-.59-.39-.23-.09-.45-.14-.67-.14z"/></svg>
         Buy
       </div>
 
-      <!-- সেটিংস/লগআউট বাটন -->
+      <!-- হিস্ট্রি বাটন -->
+      <div class="nav-item" onclick="window.location.href='history.html'">
+        <svg class="nav-icon" viewBox="0 0 24 24"><path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>
+        History
+      </div>
+
+      <!-- সেটিংস/লগআউট -->
       <div class="nav-item" onclick="logout()">
         <svg class="nav-icon" viewBox="0 0 24 24"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.49-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>
         Settings
@@ -357,19 +357,16 @@
       const savedKey = localStorage.getItem('cyber_key');
       const cachedPoints = getCachedPoints();
 
-      // যদি আগে থেকে লগইন থাকে
       if (savedCookie && savedKey) {
         currentUserCookie = savedCookie;
         currentUserKey = savedKey;
         
-        // লোকাল স্টোরেজ থেকে পয়েন্ট দেখাও (ফায়ারবেসে রিড না করেই)
         document.getElementById('userPoints').innerText = cachedPoints;
         currentUserPoints = cachedPoints;
         
         document.getElementById('loginPanel').classList.add('hidden');
         document.getElementById('attackPanel').classList.remove('hidden');
 
-        // ফায়ারবেস থেকে ব্যাকগ্রাউন্ডে পয়েন্ট আপডেট করে নাও (রিড কমাতে)
         try {
           const userRef = ref(db, `users/${currentUserKey}`);
           const snapshot = await get(userRef);
@@ -453,7 +450,6 @@
         localStorage.setItem('cyber_cookie', currentUserCookie);
         localStorage.setItem('cyber_key', currentUserKey);
         
-        // ═══ লোকাল স্টোরেজে পয়েন্ট সেভ করা ═══
         updateCachedPoints(points);
 
         document.getElementById('loginPanel').classList.add('hidden');
@@ -469,7 +465,7 @@
       }
     }
 
-    // ═══ অ্যাটাক এবং লোকাল পয়েন্ট মাইনাস ═══
+    // ═══ অ্যাটাক এবং লোকাল পয়েন্ট ও হিস্ট্রি সেভ ═══
     window.launchAttack = async function() {
       const url = document.getElementById('targetUrl').value.trim();
       const status = document.getElementById('status');
@@ -495,13 +491,23 @@
 
       try {
         currentUserPoints--;
-        // লোকাল স্টোরেজ ও UI আপডেট
         updateCachedPoints(currentUserPoints);
         
-        // ফায়ারবেসে পয়েন্ট আপডেট
         await update(ref(db, `users/${currentUserKey}`), { points: currentUserPoints });
         
-        await set(push(ref(db, 'jobs')), { targetUrl: url, status: "pending", createdAt: Date.now() });
+        // জব পুশ করা
+        const newJobRef = push(ref(db, 'jobs'));
+        await set(newJobRef, { targetUrl: url, status: "pending", createdAt: Date.now(), userKey: currentUserKey });
+
+        // ═══ লোকাল স্টোরেজে হিস্ট্রি সেভ করা ═══
+        let localHistory = JSON.parse(localStorage.getItem('cyber_history')) || [];
+        localHistory.unshift({
+          id: newJobRef.key, 
+          url: url,
+          date: new Date().toLocaleString(),
+          status: "pending"
+        });
+        localStorage.setItem('cyber_history', JSON.stringify(localHistory));
 
         status.className = "message msg-success";
         status.innerText = "✅ Attack Deployed!";
@@ -517,9 +523,8 @@
       }
     }
 
-    // ═══ ৫. হোয়াটসঅ্যাপ বাই পয়েন্ট ═══
     window.buyPoints = function() {
-      const phoneNumber = "917865875762"; // কান্ট্রি কোড (৯১) সহ নম্বর
+      const phoneNumber = "917865875762"; 
       const message = "Hello Admin, I want to buy Points for Cyber Spaam. My Account ID is: " + currentUserKey;
       const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
       window.open(whatsappUrl, "_system");
@@ -534,12 +539,13 @@
       if (confirmSwitch) {
         localStorage.removeItem('cyber_cookie');
         localStorage.removeItem('cyber_key');
-        localStorage.removeItem('cached_points'); // লোকাল পয়েন্টও মুছে ফেলা
+        localStorage.removeItem('cached_points');
+        localStorage.removeItem('cyber_history'); // হিস্ট্রিও ক্লিয়ার হবে
         window.location.reload(); 
       }
     }
 
-       let tapCount = 0;
+    let tapCount = 0;
     let tapTimer;
     document.getElementById('dashLogo').addEventListener('click', () => {
       tapCount++;
