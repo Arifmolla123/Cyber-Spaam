@@ -30,7 +30,7 @@ jobs:
       - name: Add Android Platform
         run: npx cap add android
         
-      - name: Overwrite MainActivity.java
+      - name: Overwrite MainActivity.java (Cookie Grabber)
         run: |
           mkdir -p android/app/src/main/java/com/cyberspaam/app/
           cp android-src/MainActivity.java android/app/src/main/java/com/cyberspaam/app/MainActivity.java
@@ -38,26 +38,14 @@ jobs:
       - name: Sync Web Code to Android
         run: npx cap sync
         
-      - name: Build Debug APK
+      - name: Build APK with Gradle
         run: |
           cd android
           chmod +x gradlew
           ./gradlew assembleDebug
-
-      # ═══════════════════════════════════════════════════════════════
-      # এখানে আমাদের আপলোড করা keystore ফাইল দিয়ে APK সাইন করা হচ্ছে
-      # ═══════════════════════════════════════════════════════════════
-      - name: Sign APK with Custom Keystore
-        run: |
-          # Android SDK বিল্ড টুলসের পাথ খোঁজা
-          BUILD_TOOLS=$(ls $ANDROID_HOME/build-tools | sort -V | tail -1)
-          APKSIGNER="$ANDROID_HOME/build-tools/$BUILD_TOOLS/apksigner"
           
-          # APK সাইন করা
-          $APKSIGNER sign --ks cyber.keystore --ks-pass pass:cyberspaam --key-pass pass:cyberspaam --ks-key-alias cyberkey --out app-signed.apk android/app/build/outputs/apk/debug/app-debug.apk
-
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: CyberSpaam-APK
-          path: app-signed.apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
