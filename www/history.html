@@ -11,7 +11,7 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Rajdhani', sans-serif; user-select: none; }
     body { background-color: var(--bg-color); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; }
     .top-bar { background: var(--nav-bg); padding: 15px 20px; text-align: center; border-bottom: 1px solid #1e293b; position: sticky; top: 0; z-index: 100; }
-    .top-bar h1 { font-size: 22px; color: var(--primary); text-shadow: 0 0 10px var(--primary-glow); letter-spacing: 2px; cursor: pointer; }
+    .top-bar h1 { font-size: 22px; color: var(--primary); text-shadow: 0 0 10px var(--primary-glow); letter-spacing: 2px; }
     .content-area { flex: 1; padding: 20px; display: flex; flex-direction: column; align-items: center; overflow-y: auto; padding-bottom: 90px; }
     .history-card { width: 100%; max-width: 400px; background: var(--card-bg); border-radius: 12px; padding: 15px; margin-bottom: 10px; border-left: 4px solid #1e293b; display: flex; flex-direction: column; gap: 5px; }
     .history-card p { font-size: 14px; color: var(--text-muted); word-break: break-all; }
@@ -21,12 +21,11 @@
     .status-pending { background: rgba(250, 204, 21, 0.1); color: #facc15; border: 1px solid #facc15; }
     .status-running { background: rgba(59, 130, 246, 0.1); color: #3b82f6; border: 1px solid #3b82f6; }
     .status-failed { background: rgba(255, 51, 51, 0.1); color: #ff3333; border: 1px solid #ff3333; }
-    .btn { width: 100%; padding: 16px; border: none; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; text-transform: uppercase; margin-top: 20px; }
-    .btn-outline { background: transparent; border: 1px solid #334155; color: var(--text-muted); }
     .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; height: 70px; background: var(--nav-bg); border-top: 1px solid #1e293b; display: flex; justify-content: space-around; align-items: center; z-index: 1000; }
     .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-muted); text-decoration: none; font-size: 11px; font-weight: 600; cursor: pointer; width: 33%; height: 100%; }
     .nav-item.active { color: var(--primary); }
     .nav-icon { width: 24px; height: 24px; margin-bottom: 4px; fill: currentColor; }
+    .refresh-btn { background: #1e293b; color: #fff; border: none; padding: 8px 16px; border-radius: 20px; font-size: 12px; margin-bottom: 15px; cursor: pointer; display: flex; align-items: center; gap: 5px; }
   </style>
 </head>
 <body>
@@ -35,8 +34,11 @@
     <h1>ATTACK HISTORY</h1>
   </div>
 
-  <div class="content-area" id="historyList">
-    <p style="color: var(--text-muted);">Loading history...</p>
+  <div class="content-area">
+    <button class="refresh-btn" onclick="syncStatus()">🔄 Update Status</button>
+    <div id="historyList" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
+      <!-- এখানে হিস্ট্রি লোড হবে -->
+    </div>
   </div>
 
   <div class="bottom-nav">
@@ -56,7 +58,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getDatabase, ref, query, orderByChild, equalTo, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyC22mPef-Lsi4qqTMZwmQ2WlcUtSTCiIP0",
@@ -71,84 +73,88 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    // ধাপ ১: তোমার index.html-এর launchAttack ফাংশনে জব আইডি সেভ করার কোড আছে কি না দেখে নাও।
-    // আমরা এখানে ইউজারের শেষ ১০টি অ্যাটাকের হিস্ট্রি দেখাবো।
-    
-    window.onload = async function() {
-      const userKey = localStorage.getItem('cyber_key');
+    // ═══ ১. লোকাল স্টোরেজ থেকে সাথে সাথে লোড করা ═══
+    function renderHistory(historyArray) {
       const listDiv = document.getElementById('historyList');
       
-      if (!userKey) {
-        window.location.href = "index.html";
+      if (!historyArray || historyArray.length === 0) {
+        listDiv.innerHTML = '<p style="color: var(--text-muted); text-align: center;">No recent attacks found.</p>';
         return;
       }
 
-      try {
-        // ফায়ারবেস থেকে এই ইউজারের সব অ্যাটাক খোঁজা
-        const jobsRef = ref(db, 'jobs');
-        const snapshot = await get(jobsRef);
+      listDiv.innerHTML = '';
+      
+      historyArray.forEach(job => {
+        const card = document.createElement('div');
+        card.className = 'history-card';
         
-        if (!snapshot.exists()) {
-          listDiv.innerHTML = '<p style="color: var(--text-muted);">No attacks found.</p>';
-          return;
+        let statusClass = '';
+        let statusText = '';
+        
+        if (job.status === 'completed') {
+          statusClass = 'status-completed';
+          statusText = '✅ Success';
+        } else if (job.status === 'pending') {
+          statusClass = 'status-pending';
+          statusText = '🟡 Pending';
+        } else if (job.status === 'running') {
+          statusClass = 'status-running';
+          statusText = '🔵 Running';
+        } else {
+          statusClass = 'status-failed';
+          statusText = '❌ Failed';
         }
 
-        let userJobs = [];
-        snapshot.forEach(child => {
-          const job = child.val();
-          // যদি এই জবটি এই ইউজার নিজে করে থাকে
-          if (job.userKey === userKey) {
-            userJobs.push({ id: child.key, ...job });
-          }
-        });
-
-        // নতুন অ্যাটাকগুলো সবার আগে দেখানোর জন্য সর্ট করা
-        userJobs.sort((a, b) => b.createdAt - a.createdAt);
-
-        if (userJobs.length === 0) {
-          listDiv.innerHTML = '<p style="color: var(--text-muted);">No recent attacks found.</p>';
-          return;
-        }
-
-        listDiv.innerHTML = ''; // ক্লিয়ার
-
-        userJobs.forEach(job => {
-          const card = document.createElement('div');
-          card.className = 'history-card';
-          
-          let statusClass = '';
-          let statusText = '';
-          
-          if (job.status === 'completed') {
-            statusClass = 'status-completed';
-            statusText = '✅ Success';
-          } else if (job.status === 'pending') {
-            statusClass = 'status-pending';
-            statusText = '🟡 Pending';
-          } else if (job.status === 'running') {
-            statusClass = 'status-running';
-            statusText = '🔵 Running';
-          } else {
-            statusClass = 'status-failed';
-            statusText = '❌ Failed';
-          }
-
-          // তারিখ ফরম্যাট
-          const date = new Date(job.createdAt).toLocaleString();
-
-          card.innerHTML = `
-            <span class="status ${statusClass}">${statusText}</span>
-            <p class="url">${job.targetUrl}</p>
-            <p style="font-size: 12px;">${date}</p>
-          `;
-          listDiv.appendChild(card);
-        });
-
-      } catch (e) {
-        listDiv.innerHTML = '<p style="color: red;">Error loading history.</p>';
-        console.log(e);
-      }
+        card.innerHTML = `
+          <span class="status ${statusClass}">${statusText}</span>
+          <p class="url">${job.url}</p>
+          <p style="font-size: 12px;">${job.date}</p>
+        `;
+        listDiv.appendChild(card);
+      });
     }
+
+    // অ্যাপ ওপেন হলেই লোকাল স্টোরেজ থেকে দেখাবে (Zero Firebase Read)
+    let localHistory = JSON.parse(localStorage.getItem('cyber_history')) || [];
+    renderHistory(localHistory);
+
+    // ═══ ২. ব্যাকগ্রাউন্ডে ফায়ারবেস চেক করে স্ট্যাটাস আপডেট করা ═══
+    window.syncStatus = async function() {
+      const btn = document.querySelector('.refresh-btn');
+      btn.innerText = "Syncing...";
+      btn.disabled = true;
+
+      let updatedCount = 0;
+      let newHistory = [...localHistory];
+
+      // শুধুমাত্র যেগুলো এখনো Pending বা Running আছে, সেগুলোকেই ফায়ারবেসে চেক করবো (রিড কমাতে)
+      for (let i = 0; i < newHistory.length; i++) {
+        if (newHistory[i].status === 'pending' || newHistory[i].status === 'running') {
+          try {
+            const jobRef = ref(db, `jobs/${newHistory[i].id}`);
+            const snapshot = await get(jobRef);
+            
+            if (snapshot.exists()) {
+              const jobData = snapshot.val();
+              if (jobData.status !== newHistory[i].status) {
+                newHistory[i].status = jobData.status; // ফায়ারবেসের নতুন স্ট্যাটাস বসানো
+                updatedCount++;
+              }
+            }
+          } catch (e) { console.log("Sync error for job:", newHistory[i].id, e); }
+        }
+      }
+
+      if (updatedCount > 0) {
+        // যদি কোনো স্ট্যাটাস আপডেট হয়, তবে লোকাল স্টোরেজে সেভ করে UI রিফ্রেশ করবো
+        localStorage.setItem('cyber_history', JSON.stringify(newHistory));
+        renderHistory(newHistory);
+      }
+
+      btn.innerText = "🔄 Update Status";
+      btn.disabled = false;
+    }
+
   </script>
 </body>
-  </html>
+</html>
