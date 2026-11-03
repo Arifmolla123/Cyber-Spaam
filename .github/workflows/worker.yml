@@ -23,3 +23,5 @@ jobs:
       
       - name: Run Attack Engine
         run: node spaam.mjs
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
