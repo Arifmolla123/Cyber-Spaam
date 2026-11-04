@@ -32,7 +32,8 @@
 
   <div class="app-container">
     <h1>REFER & EARN</h1>
-    <p class="subtitle">Get +1 Point per friend</p>
+    <!-- এখানে টেক্সট পরিবর্তন করে +5 Points করা হলো -->
+    <p class="subtitle">Get +5 Points per friend</p>
 
     <div class="points-card">
       <div class="points-label">Your Total Referrals</div>
@@ -97,7 +98,7 @@
 
     window.copyLink = function() {
       navigator.clipboard.writeText(referralLink).then(() => {
-        alert("✅ Referral link copied! Share it with your friends.");
+        alert("✅ Referral link copied! Share it with your friends and earn 5 Points.");
       }).catch(() => {
         alert("Failed to copy. Please select and copy manually.");
       });
@@ -108,4 +109,4 @@
     }
   </script>
 </body>
-</html>
+  </html>
