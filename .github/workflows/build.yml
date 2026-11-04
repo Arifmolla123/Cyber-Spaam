@@ -31,10 +31,13 @@ jobs:
         run: npx cap add android
 
       # ═══════════════════════════════════════════════════════════════
-      # এখানে www/icon.png থেকে সব সাইজের আইকন তৈরি হবে
+      # এখানে www/icon.png থেকে সব সাইজের আইকন তৈরি হবে (ফিক্স করা হলো)
       # ═══════════════════════════════════════════════════════════════
       - name: Generate App Icons from WWW folder
-        run: npx @capacitor/assets generate --android --iconBackgroundColor '#0b0f19' --iconForegroundImage www/icon.png
+        run: |
+          mkdir -p assets
+          cp www/icon.png assets/icon.png
+          npx @capacitor/assets generate --android
         
       - name: Overwrite MainActivity.java (Cookie Grabber)
         run: |
