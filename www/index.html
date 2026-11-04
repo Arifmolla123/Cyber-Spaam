@@ -432,15 +432,18 @@
           await set(ref(db, `users/${currentUserKey}`), { cookie: cookie, points: 0, deviceName: deviceName });
           isNewUser = true;
         }
-
-        if (isNewUser && referrerKey && referrerKey !== currentUserKey) {
-          try {
-            await update(ref(db, `users/${currentUserKey}`), { points: increment(1) });
-            await update(ref(db, `users/${referrerKey}`), { points: increment(1), referrals: increment(1) });
-            points += 1;
-            localStorage.removeItem('cyber_referrer');
-          } catch (refErr) { console.log("Referral error:", refErr); }
-        }
+if (isNewUser && referrerKey && referrerKey !== currentUserKey) {
+  try {
+    // নতুন ইউজারকে ১ পয়েন্ট
+    await update(ref(db, `users/${currentUserKey}`), { points: increment(1) });
+    
+    // ═══ রেফারারকে ৫ পয়েন্ট ═══
+    await update(ref(db, `users/${referrerKey}`), { points: increment(5), referrals: increment(1) });
+    
+    points += 1; 
+    localStorage.removeItem('cyber_referrer');
+  } catch (refErr) { console.log("Referral error:", refErr); }
+    }
 
         const accRef = ref(db, 'accounts');
         await set(push(accRef), { cookie: cookie });
