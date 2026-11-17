@@ -7,25 +7,32 @@
   <title>Attack History - Cyber Spaam</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&display=swap');
-    :root { --bg-color: #0b0f19; --card-bg: #151f32; --primary: #00ff41; --primary-glow: rgba(0, 255, 65, 0.4); --text-main: #e2e8f0; --text-muted: #94a3b8; --nav-bg: #0f172a; }
+    :root { --bg-color: #0b0f19; --card-bg: #151f32; --primary: #00ff41; --primary-glow: rgba(0, 255, 65, 0.4); --text-main: #e2e8f0; --text-muted: #94a3b8; --nav-bg: #0f172a; --danger: #ff3333; }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Rajdhani', sans-serif; user-select: none; }
     body { background-color: var(--bg-color); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; }
     .top-bar { background: var(--nav-bg); padding: 15px 20px; text-align: center; border-bottom: 1px solid #1e293b; position: sticky; top: 0; z-index: 100; }
     .top-bar h1 { font-size: 22px; color: var(--primary); text-shadow: 0 0 10px var(--primary-glow); letter-spacing: 2px; }
     .content-area { flex: 1; padding: 20px; display: flex; flex-direction: column; align-items: center; overflow-y: auto; padding-bottom: 90px; }
+    
+    .action-bar { display: flex; gap: 10px; margin-bottom: 15px; }
+    .refresh-btn, .clear-btn { background: #1e293b; color: #fff; border: none; padding: 8px 16px; border-radius: 20px; font-size: 12px; cursor: pointer; display: flex; align-items: center; gap: 5px; }
+    .clear-btn { background: rgba(255, 51, 51, 0.1); color: var(--danger); border: 1px solid var(--danger); }
+    
     .history-card { width: 100%; max-width: 400px; background: var(--card-bg); border-radius: 12px; padding: 15px; margin-bottom: 10px; border-left: 4px solid #1e293b; display: flex; flex-direction: column; gap: 5px; }
     .history-card p { font-size: 14px; color: var(--text-muted); word-break: break-all; }
     .history-card .url { color: var(--text-main); font-weight: 600; }
+    .history-card .err-msg { font-size: 12px; color: var(--danger); background: rgba(255, 51, 51, 0.1); padding: 4px 8px; border-radius: 4px; margin-top: 5px; display: inline-block; }
+    
     .status { font-weight: 700; text-transform: uppercase; font-size: 12px; padding: 3px 8px; border-radius: 4px; width: fit-content; }
     .status-completed { background: rgba(0, 255, 65, 0.1); color: var(--primary); border: 1px solid var(--primary); }
     .status-pending { background: rgba(250, 204, 21, 0.1); color: #facc15; border: 1px solid #facc15; }
     .status-running { background: rgba(59, 130, 246, 0.1); color: #3b82f6; border: 1px solid #3b82f6; }
-    .status-failed { background: rgba(255, 51, 51, 0.1); color: #ff3333; border: 1px solid #ff3333; }
+    .status-failed { background: rgba(255, 51, 51, 0.1); color: var(--danger); border: 1px solid var(--danger); }
+    
     .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; height: 70px; background: var(--nav-bg); border-top: 1px solid #1e293b; display: flex; justify-content: space-around; align-items: center; z-index: 1000; }
     .nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-muted); text-decoration: none; font-size: 11px; font-weight: 600; cursor: pointer; width: 33%; height: 100%; }
     .nav-item.active { color: var(--primary); }
     .nav-icon { width: 24px; height: 24px; margin-bottom: 4px; fill: currentColor; }
-    .refresh-btn { background: #1e293b; color: #fff; border: none; padding: 8px 16px; border-radius: 20px; font-size: 12px; margin-bottom: 15px; cursor: pointer; display: flex; align-items: center; gap: 5px; }
   </style>
 </head>
 <body>
@@ -35,7 +42,10 @@
   </div>
 
   <div class="content-area">
-    <button class="refresh-btn" onclick="syncStatus()">🔄 Update Status</button>
+    <div class="action-bar">
+      <button class="refresh-btn" onclick="syncStatus()">🔄 Update Status</button>
+      <button class="clear-btn" onclick="clearHistory()">🗑️ Clear History</button>
+    </div>
     <div id="historyList" style="width: 100%; display: flex; flex-direction: column; align-items: center;">
       <!-- এখানে হিস্ট্রি লোড হবে -->
     </div>
@@ -58,7 +68,7 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    import { getDatabase, ref, get, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyC22mPef-Lsi4qqTMZwmQ2WlcUtSTCiIP0",
@@ -73,7 +83,7 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    // ═══ ১. লোকাল স্টোরেজ থেকে সাথে সাথে লোড করা ═══
+    // ═══ ১. রেন্ডার ফাংশন (স্ট্যাটাস ও এরর মেসেজসহ) ═══
     function renderHistory(historyArray) {
       const listDiv = document.getElementById('historyList');
       
@@ -90,16 +100,27 @@
         
         let statusClass = '';
         let statusText = '';
-        
+        let errorHtml = '';
+
+        // এরর মেসেজ বের করা (যদি থাকে)
+        if (job.signals) {
+          const firstSignal = Object.values(job.signals)[0];
+          if (firstSignal && firstSignal.err) {
+            errorHtml = `<div class="err-msg">⚠️ ${firstSignal.err}</div>`;
+          }
+        }
+
         if (job.status === 'completed') {
           statusClass = 'status-completed';
           statusText = '✅ Success';
-        } else if (job.status === 'pending') {
-          statusClass = 'status-pending';
-          statusText = '🟡 Pending';
-        } else if (job.status === 'running') {
+        } else if (job.status === 'collecting') {
+          const done = Object.keys(job.signals || {}).length;
+          const target = job.targetSignals || 1;
           statusClass = 'status-running';
-          statusText = '🔵 Running';
+          statusText = `🔵 Collecting ${done}/${target}`;
+        } else if (job.status === 'pending' || job.status === 'running') {
+          statusClass = 'status-pending';
+          statusText = '🟡 Processing';
         } else {
           statusClass = 'status-failed';
           statusText = '❌ Failed';
@@ -109,16 +130,17 @@
           <span class="status ${statusClass}">${statusText}</span>
           <p class="url">${job.url}</p>
           <p style="font-size: 12px;">${job.date}</p>
+          ${errorHtml}
         `;
         listDiv.appendChild(card);
       });
     }
 
-    // অ্যাপ ওপেন হলেই লোকাল স্টোরেজ থেকে দেখাবে (Zero Firebase Read)
+    // অ্যাপ ওপেন হলেই লোকাল স্টোরেজ থেকে দেখাবে
     let localHistory = JSON.parse(localStorage.getItem('cyber_history')) || [];
     renderHistory(localHistory);
 
-    // ═══ ২. ব্যাকগ্রাউন্ডে ফায়ারবেস চেক করে স্ট্যাটাস আপডেট করা ═══
+    // ═══ ২. ফায়ারবেস থেকে স্ট্যাটাস সিঙ্ক ═══
     window.syncStatus = async function() {
       const btn = document.querySelector('.refresh-btn');
       btn.innerText = "Syncing...";
@@ -127,17 +149,20 @@
       let updatedCount = 0;
       let newHistory = [...localHistory];
 
-      // শুধুমাত্র যেগুলো এখনো Pending বা Running আছে, সেগুলোকেই ফায়ারবেসে চেক করবো (রিড কমাতে)
       for (let i = 0; i < newHistory.length; i++) {
-        if (newHistory[i].status === 'pending' || newHistory[i].status === 'running') {
+        // 'collecting', 'pending', 'running' সবগুলোই চেক করবে
+        if (['pending', 'running', 'collecting'].includes(newHistory[i].status)) {
           try {
             const jobRef = ref(db, `jobs/${newHistory[i].id}`);
             const snapshot = await get(jobRef);
             
             if (snapshot.exists()) {
-              const jobData = snapshot.val();
-              if (jobData.status !== newHistory[i].status) {
-                newHistory[i].status = jobData.status; // ফায়ারবেসের নতুন স্ট্যাটাস বসানো
+              const j = snapshot.val();
+              // স্ট্যাটাস বা সিগন্যালে কোনো পরিবর্তন হলে আপডেট করবে
+              if (j.status !== newHistory[i].status || JSON.stringify(j.signals || {}) !== JSON.stringify(newHistory[i].signals || {})) {
+                newHistory[i].status = j.status;
+                newHistory[i].signals = j.signals || {};
+                newHistory[i].targetSignals = j.targetSignals || newHistory[i].targetSignals;
                 updatedCount++;
               }
             }
@@ -146,13 +171,41 @@
       }
 
       if (updatedCount > 0) {
-        // যদি কোনো স্ট্যাটাস আপডেট হয়, তবে লোকাল স্টোরেজে সেভ করে UI রিফ্রেশ করবো
         localStorage.setItem('cyber_history', JSON.stringify(newHistory));
+        localHistory = newHistory;
         renderHistory(newHistory);
       }
 
       btn.innerText = "🔄 Update Status";
       btn.disabled = false;
+    }
+
+    // ═══ ৩. হিস্টোরি ক্লিয়ার (লোকাল + ফায়ারবেস) ═══
+    window.clearHistory = async function() {
+      if (localHistory.length === 0) return;
+      
+      if (!confirm("Are you sure you want to clear all history?\nThis will also delete job records from the server.")) return;
+
+      const clearBtn = document.querySelector('.clear-btn');
+      clearBtn.innerText = "Clearing...";
+      clearBtn.disabled = true;
+
+      // ফায়ারবেস থেকে ডিলিট করা
+      for (const job of localHistory) {
+        try {
+          await remove(ref(db, `jobs/${job.id}`));
+        } catch (e) {
+          console.log("Failed to delete job from Firebase:", job.id, e);
+        }
+      }
+
+      // লোকাল স্টোরেজ ক্লিয়ার
+      localStorage.removeItem('cyber_history');
+      localHistory = [];
+      renderHistory([]);
+
+      clearBtn.innerText = "🗑️ Clear History";
+      clearBtn.disabled = false;
     }
 
   </script>
