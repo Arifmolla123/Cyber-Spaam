@@ -1,60 +1,65 @@
-# language: YAML, file: .github/workflows/build.yml
 name: Build Android APK
 
 on:
   push:
-    branches: [ main ]
+    branches: [ "main" ]
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Source
-        uses: actions/checkout@v4
-        
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          
-      - name: Setup Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'zulu'
-          java-version: '17'
-          
-      - name: Install NPM dependencies
-        run: npm install
-        
-      - name: Add Android Platform
-        run: npx cap add android
 
-      # ═══════════════════════════════════════════════════════════════
-      # এখানে www/icon.png থেকে সব সাইজের আইকন তৈরি হবে (ফিক্স করা হলো)
-      # ═══════════════════════════════════════════════════════════════
-      - name: Generate App Icons from WWW folder
-        run: |
+    steps:
+    - name: Checkout Source Code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Setup Java JDK
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'zulu'
+        java-version: '17'
+
+    - name: Install Dependencies
+      run: |
+        npm install
+        npm install @capacitor/assets --save-dev
+
+    - name: Setup Android Platform
+      run: npx cap add android
+
+    - name: Generate App Icons
+      run: |
+        if [ -f "assets/icon.png" ]; then
+          npx @capacitor/assets generate --android
+        elif [ -f "www/icon.png" ]; then
           mkdir -p assets
           cp www/icon.png assets/icon.png
           npx @capacitor/assets generate --android
-        
-      - name: Overwrite MainActivity.java (Cookie Grabber)
-        run: |
-          mkdir -p android/app/src/main/java/com/cyberspaam/app/
-          cp android-src/MainActivity.java android/app/src/main/java/com/cyberspaam/app/MainActivity.java
-        
-      - name: Sync Web Code to Android
-        run: npx cap sync
-        
-      - name: Build APK with Gradle
-        run: |
-          cd android
-          chmod +x gradlew
-          ./gradlew assembleDebug
-          
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: CyberSpaam-APK
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+        else
+          echo "No icon found."
+        fi
+
+    - name: Overwrite MainActivity.java
+      run: |
+        mkdir -p android/app/src/main/java/com/cyberspaam/app/
+        cp android-src/MainActivity.java android/app/src/main/java/com/cyberspaam/app/MainActivity.java
+
+    - name: Sync Capacitor
+      run: npx cap sync android
+
+    - name: Build APK
+      run: |
+        cd android
+        chmod +x gradlew
+        ./gradlew assembleDebug
+
+    - name: Upload APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: CyberSpaam-APK
+        path: android/app/build/outputs/apk/debug/app-debug.apk
