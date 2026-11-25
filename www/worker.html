@@ -1,0 +1,160 @@
+<!-- language: HTML, file: www/worker.html -->
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="background:#0b0f19; color:#fff; font-family:sans-serif; text-align:center; padding-top:50px;">
+  <h2>Cyber Spaam Engine</h2>
+  <p id="status">Initializing...</p>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getDatabase, ref, get, update, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyC22mPef-Lsi4qqTMZwmQ2WlcUtSTCiIP0",
+      authDomain: "cyber-spaam.firebaseapp.com",
+      databaseURL: "https://cyber-spaam-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "cyber-spaam",
+      storageBucket: "cyber-spaam.firebasestorage.app",
+      messagingSenderId: "180047004522",
+      appId: "1:180047004522:web:470d5c50f2e333916d9b13"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    const WORKER_ID = (localStorage.getItem('worker_id') ||= 'w_' + Math.random().toString(36).slice(2, 10));
+    const COOLDOWN_MS = 3 * 60 * 1000; // প্রতি ৩ মিনিটে একবার চেক করবে
+    const STAGGER_MAX_MS = 2 * 60 * 1000; // ০-২ মিনিটের ভেতর র‍্যান্ডম টাইমে রিপোর্ট করবে
+    
+    const sleep = ms => new Promise(r => setTimeout(r, ms));
+    const statusText = document.getElementById('status');
+    
+    let busy = false;
+
+    function log(msg) {
+      statusText.innerText = msg;
+      console.log(msg);
+    }
+
+    // ═══ ১. ফলাফল ফায়ারবেসে আপডেট করা ═══
+    async function finishResult(jobId, ok, errMsg = '') {
+      log(`Finishing job ${jobId}: ${ok ? 'SUCCESS' : 'FAILED'}`);
+      try {
+        await update(ref(db, `jobs/${jobId}/signals/${WORKER_ID}`), { 
+          ok: ok, 
+          err: errMsg,
+          finishedAt: Date.now() 
+        });
+        localStorage.setItem('last_report_at', String(Date.now()));
+
+        // জব কমপ্লিট কিনা চেক করা
+        const snap = await get(ref(db, 'jobs/' + jobId));
+        const job = snap.val();
+        if (!job) return;
+
+        const signals = job.signals || {};
+        const total = Object.keys(signals).length;
+        const success = Object.values(signals).filter(s => s.ok === true).length;
+        const expired = Date.now() > (job.expiresAt || 0);
+        const target = job.targetSignals || 1;
+
+        if ((total >= target || expired) && success > 0) {
+          await update(ref(db, 'jobs/' + jobId), { status: 'completed', completedAt: Date.now(), successCount: success });
+        } else if (expired) {
+          await update(ref(db, 'jobs/' + jobId), { status: 'failed', completedAt: Date.now(), successCount: success });
+        }
+      } catch (e) {
+        console.error("Finish result error:", e);
+      }
+    }
+
+    // ═══ ২. নতুন জব খোঁজা ═══
+    async function tick() {
+      if (busy) return;
+      const last = parseInt(localStorage.getItem('last_report_at') || '0', 10);
+      if (Date.now() - last < COOLDOWN_MS) {
+        log("Cooling down... waiting.");
+        return;
+      }
+
+      busy = true;
+      try {
+        log("Checking for jobs...");
+        const snap = await get(ref(db, 'jobs'));
+        if (!snap.exists()) { busy = false; log("No jobs found."); return; }
+
+        const candidates = Object.entries(snap.val())
+          .filter(([k, j]) =>
+            j.status === 'collecting' &&
+            Date.now() < (j.expiresAt || 0) &&
+            !(j.signals && j.signals[WORKER_ID])
+          )
+          .sort((a, b) => (a[1].createdAt || 0) - (b[1].createdAt || 0));
+
+        if (candidates.length === 0) {
+          busy = false; log("No pending jobs for me."); return;
+        }
+
+        // সবচেয়ে পুরোনো জবটা নেওয়া
+        const [jobId, job] = candidates[0];
+        
+        // ট্রানজেকশন দিয়ে সিগন্যাল লক করা
+        const res = await runTransaction(ref(db, `jobs/${jobId}/signals/${WORKER_ID}`), s => {
+          if (s) return; 
+          return { at: Date.now(), dev: localStorage.getItem('device') || '?' };
+        });
+
+        if (!res.committed || !res.snapshot.val()) {
+          busy = false; return;
+        }
+
+        log(`Claimed job ${jobId}. Staggering...`);
+        
+        // র‍্যান্ডম ডিলে (যাতে সবাই একসাথে রিপোর্ট না করে)
+        const stagger = Math.floor(Math.random() * STAGGER_MAX_MS);
+        await sleep(stagger);
+
+        if (window.AndroidWorker && window.AndroidWorker.navigate) {
+          log(`Navigating to: ${job.targetUrl}`);
+          window.AndroidWorker.navigate(job.targetUrl + '|' + jobId);
+          return; // অ্যান্ড্রয়েড রিপোর্ট শেষ করে hash দিয়ে আবার এখানে পাঠাবে
+        } else {
+          log("Error: AndroidWorker bridge not found.");
+          await update(ref(db, `jobs/${jobId}/signals/${WORKER_ID}`), { ok: false, err: 'no_bridge', finishedAt: Date.now() });
+        }
+      } catch (e) {
+        console.error(e);
+        log("Error in tick: " + e.message);
+      } finally {
+        busy = false;
+      }
+    }
+
+    // ═══ ৩. অ্যান্ড্রয়েড থেকে রেজাল্ট আসলে হ্যান্ডেল করা ═══
+    (async () => {
+      const h = location.hash.slice(1);
+      if (h) {
+        // hash ফরম্যাট: jobId:ok:err
+        const parts = h.split(':');
+        const jobId = parts[0];
+        const ok = parts[1] === '1';
+        const errMsg = parts[2] || '';
+        
+        history.replaceState(null, '', 'worker.html'); // URL পরিষ্কার করা
+        
+        busy = true;
+        await finishResult(jobId, ok, errMsg);
+        busy = false;
+      }
+      
+      log("Engine running.");
+      setInterval(tick, 30000); // প্রতি ৩০ সেকেন্ডে চেক করবে
+      tick();
+    })();
+  </script>
+</body>
+</html>
