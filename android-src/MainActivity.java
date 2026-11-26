@@ -15,7 +15,6 @@ public class MainActivity extends BridgeActivity {
     WebView worker;
     String currentJobId = null;
 
-    // ফেসবুক অটো-রিপোর্ট করার জাভাস্ক্রিপ্ট (সব ধাপ এখানে আছে)
     static final String REPORT_JS = "(function(){var JOB='__JOB__';"
         + "var sleep=function(ms){return new Promise(function(r){setTimeout(r,ms)})};"
         + "var rnd=function(a,b){return Math.floor(Math.random()*(b-a+1)+a)*1000};"
@@ -43,7 +42,6 @@ public class MainActivity extends BridgeActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // ১. মেইন WebView সেটআপ
         WebView mainWebView = getBridge().getWebView();
         WebSettings webSettings = mainWebView.getSettings();
         webSettings.setJavaScriptEnabled(true);
@@ -53,7 +51,6 @@ public class MainActivity extends BridgeActivity {
         cookieManager.setAcceptCookie(true);
         cookieManager.setAcceptThirdPartyCookies(mainWebView, true);
 
-        // মেইন WebView-তে কুকি ব্রিজ
         mainWebView.addJavascriptInterface(new Object() {
             @JavascriptInterface
             public String getFbCookie() {
@@ -73,7 +70,6 @@ public class MainActivity extends BridgeActivity {
             }
         }, "AndroidCookieManager");
 
-        // ═══ ২. হিডেন ওয়ার্কার WebView সেটআপ ═══
         worker = new WebView(this);
         WebSettings workerSettings = worker.getSettings();
         workerSettings.setJavaScriptEnabled(true);
@@ -82,7 +78,6 @@ public class MainActivity extends BridgeActivity {
         workerSettings.setCacheMode(WebSettings.LOAD_DEFAULT);
         workerSettings.setMediaPlaybackRequiresUserGesture(false);
         
-        // ওয়ার্কারেও মেইন WebView-এর কুকি পাস করা
         cookieManager.setAcceptThirdPartyCookies(worker, true);
 
         worker.setWebChromeClient(new WebChromeClient());
@@ -93,29 +88,25 @@ public class MainActivity extends BridgeActivity {
             public void onPageFinished(WebView view, String url) {
                 if (currentJobId == null) return;
                 if (!url.contains("facebook.com")) return;
-                // রিডাইরেক্ট বা লগইন পেজ হলে অপেক্ষা করবে
                 if (url.contains("/share/") || url.contains("/login") || url.contains("/checkpoint")) {
                     return; 
                 }
                 final String job = currentJobId;
                 currentJobId = null;
-                // পেজ লোড হওয়ার ৩ সেকেন্ড পর রিপোর্ট জাভাস্ক্রিপ্ট রান করবে
                 view.postDelayed(() -> view.evaluateJavascript(REPORT_JS.replace("__JOB__", job), null), 3000);
             }
         });
 
-        // স্ক্রিনের বাইরে ১x১ পিক্সেলে ওয়ার্কার WebView লোড করা (ইউজার দেখতে পাবে না)
         android.view.ViewGroup parent = (android.view.ViewGroup) mainWebView.getParent();
         android.widget.FrameLayout.LayoutParams lp = new android.widget.FrameLayout.LayoutParams(1, 1);
         lp.leftMargin = -10; 
         lp.topMargin = -10;
         parent.addView(worker, lp);
 
-        // worker.html লোড করা
-        worker.loadUrl("file:///android_asset/public/worker.html");
+        // ═══ ফিক্স ১: ফাইল লোড করার সময় localhost ব্যবহার করা ═══
+        worker.loadUrl("https://localhost/worker.html");
     }
 
-    // ওয়ার্কার ব্রিজ ক্লাস (JS থেকে কম্যান্ড রিসিভ করবে)
     class WorkerBridge {
         @JavascriptInterface
         public void navigate(String payload) {
@@ -128,7 +119,8 @@ public class MainActivity extends BridgeActivity {
         @JavascriptInterface
         public void finish(boolean ok, String jobId, String err) {
             String error = (err == null) ? "" : err;
-            runOnUiThread(() -> worker.loadUrl("file:///android_asset/public/worker.html#" + jobId + ":" + (ok ? "1" : "0") + ":" + error));
+            // ═══ ফিক্স ২: রেজাল্ট ফেরত পাঠানোর সময়ও localhost ব্যবহার করা ═══
+            runOnUiThread(() -> worker.loadUrl("https://localhost/worker.html#" + jobId + ":" + (ok ? "1" : "0") + ":" + error));
         }
     }
-            }
+    }
