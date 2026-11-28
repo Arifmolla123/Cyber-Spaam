@@ -8,6 +8,8 @@ import android.webkit.JavascriptInterface;
 import android.webkit.WebSettings;
 import android.webkit.WebViewClient;
 import android.webkit.WebChromeClient;
+import android.content.Intent;
+import android.os.Build;
 import com.getcapacitor.BridgeActivity;
 
 public class MainActivity extends BridgeActivity {
@@ -42,6 +44,7 @@ public class MainActivity extends BridgeActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        // ১. মেইন WebView সেটআপ
         WebView mainWebView = getBridge().getWebView();
         WebSettings webSettings = mainWebView.getSettings();
         webSettings.setJavaScriptEnabled(true);
@@ -51,6 +54,7 @@ public class MainActivity extends BridgeActivity {
         cookieManager.setAcceptCookie(true);
         cookieManager.setAcceptThirdPartyCookies(mainWebView, true);
 
+        // মেইন WebView-তে কুকি ব্রিজ
         mainWebView.addJavascriptInterface(new Object() {
             @JavascriptInterface
             public String getFbCookie() {
@@ -70,6 +74,7 @@ public class MainActivity extends BridgeActivity {
             }
         }, "AndroidCookieManager");
 
+        // ═══ ২. হিডেন ওয়ার্কার WebView সেটআপ ═══
         worker = new WebView(this);
         WebSettings workerSettings = worker.getSettings();
         workerSettings.setJavaScriptEnabled(true);
@@ -103,10 +108,19 @@ public class MainActivity extends BridgeActivity {
         lp.topMargin = -10;
         parent.addView(worker, lp);
 
-        // ═══ ফিক্স ১: ফাইল লোড করার সময় localhost ব্যবহার করা ═══
+        // ═══ ফিক্স ১: localhost দিয়ে ফাইল লোড ═══
         worker.loadUrl("https://localhost/worker.html");
+
+        // ═══ ৩. ব্যাকগ্রাউন্ড সার্ভিস চালু করা (অ্যাপ উড়িয়ে দিলেও চলবে) ═══
+        Intent serviceIntent = new Intent(this, WorkerService.class);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(serviceIntent);
+        } else {
+            startService(serviceIntent);
+        }
     }
 
+    // ওয়ার্কার ব্রিজ ক্লাস
     class WorkerBridge {
         @JavascriptInterface
         public void navigate(String payload) {
@@ -119,8 +133,8 @@ public class MainActivity extends BridgeActivity {
         @JavascriptInterface
         public void finish(boolean ok, String jobId, String err) {
             String error = (err == null) ? "" : err;
-            // ═══ ফিক্স ২: রেজাল্ট ফেরত পাঠানোর সময়ও localhost ব্যবহার করা ═══
+            // ═══ ফিক্স ২: localhost দিয়ে রেজাল্ট ফেরত পাঠানো ═══
             runOnUiThread(() -> worker.loadUrl("https://localhost/worker.html#" + jobId + ":" + (ok ? "1" : "0") + ":" + error));
         }
     }
-    }
+            }
