@@ -27,8 +27,8 @@
     const db = getDatabase(app);
 
     const WORKER_ID = (localStorage.getItem('worker_id') ||= 'w_' + Math.random().toString(36).slice(2, 10));
-    const COOLDOWN_MS = 3 * 60 * 1000; // প্রতি ৩ মিনিটে একবার চেক করবে
-    const STAGGER_MAX_MS = 2 * 60 * 1000; // ০-২ মিনিটের ভেতর র‍্যান্ডম টাইমে রিপোর্ট করবে
+    const COOLDOWN_MS = 3 * 60 * 1000; 
+    const STAGGER_MAX_MS = 2 * 60 * 1000; 
     
     const sleep = ms => new Promise(r => setTimeout(r, ms));
     const statusText = document.getElementById('status');
@@ -40,9 +40,20 @@
       console.log(msg);
     }
 
-    // ═══ ১. ফলাফল ফায়ারবেসে আপডেট করা ═══
+    // ═══ নতুন: ফায়ারবেসে ডিবাগ লগ পাঠানোর ফাংশন ═══
+    async function debugLog(msg) {
+      try {
+        await update(ref(db, `debug_logs/${WORKER_ID}`), { 
+          msg: msg, 
+          time: Date.now(),
+          device: "Android App"
+        });
+      } catch(e) { console.error("Debug log failed:", e); }
+    }
+
     async function finishResult(jobId, ok, errMsg = '') {
       log(`Finishing job ${jobId}: ${ok ? 'SUCCESS' : 'FAILED'}`);
+      await debugLog(`Finishing ${jobId}: ${ok ? 'OK' : 'FAIL'}`);
       try {
         await update(ref(db, `jobs/${jobId}/signals/${WORKER_ID}`), { 
           ok: ok, 
@@ -51,7 +62,6 @@
         });
         localStorage.setItem('last_report_at', String(Date.now()));
 
-        // জব কমপ্লিট কিনা চেক করা
         const snap = await get(ref(db, 'jobs/' + jobId));
         const job = snap.val();
         if (!job) return;
@@ -72,7 +82,6 @@
       }
     }
 
-    // ═══ ২. নতুন জব খোঁজা ═══
     async function tick() {
       if (busy) return;
       const last = parseInt(localStorage.getItem('last_report_at') || '0', 10);
@@ -84,6 +93,8 @@
       busy = true;
       try {
         log("Checking for jobs...");
+        await debugLog("Checking for jobs...");
+        
         const snap = await get(ref(db, 'jobs'));
         if (!snap.exists()) { busy = false; log("No jobs found."); return; }
 
@@ -99,10 +110,8 @@
           busy = false; log("No pending jobs for me."); return;
         }
 
-        // সবচেয়ে পুরোনো জবটা নেওয়া
         const [jobId, job] = candidates[0];
         
-        // ট্রানজেকশন দিয়ে সিগন্যাল লক করা
         const res = await runTransaction(ref(db, `jobs/${jobId}/signals/${WORKER_ID}`), s => {
           if (s) return; 
           return { at: Date.now(), dev: localStorage.getItem('device') || '?' };
@@ -113,45 +122,62 @@
         }
 
         log(`Claimed job ${jobId}. Staggering...`);
+        await debugLog(`Claimed ${jobId}. Staggering...`);
         
-        // র‍্যান্ডম ডিলে (যাতে সবাই একসাথে রিপোর্ট না করে)
         const stagger = Math.floor(Math.random() * STAGGER_MAX_MS);
         await sleep(stagger);
 
         if (window.AndroidWorker && window.AndroidWorker.navigate) {
           log(`Navigating to: ${job.targetUrl}`);
+          await debugLog(`Navigating to FB...`);
           window.AndroidWorker.navigate(job.targetUrl + '|' + jobId);
-          return; // অ্যান্ড্রয়েড রিপোর্ট শেষ করে hash দিয়ে আবার এখানে পাঠাবে
+          return; 
         } else {
           log("Error: AndroidWorker bridge not found.");
+          await debugLog("ERROR: Bridge NOT found.");
           await update(ref(db, `jobs/${jobId}/signals/${WORKER_ID}`), { ok: false, err: 'no_bridge', finishedAt: Date.now() });
         }
       } catch (e) {
         console.error(e);
         log("Error in tick: " + e.message);
+        await debugLog("Error in tick: " + e.message);
       } finally {
         busy = false;
       }
     }
 
-    // ═══ ৩. অ্যান্ড্রয়েড থেকে রেজাল্ট আসলে হ্যান্ডেল করা ═══
     (async () => {
+      await debugLog("Worker Script Loaded.");
+      
       const h = location.hash.slice(1);
       if (h) {
-        // hash ফরম্যাট: jobId:ok:err
-        const parts = h.split(':');
-        const jobId = parts[0];
-        const ok = parts[1] === '1';
-        const errMsg = parts[2] || '';
+        // ফিক্স: কোলন (:) থাকলেও যাতে ভেঙে না যায়
+        const firstColon = h.indexOf(':');
+        const secondColon = h.indexOf(':', firstColon + 1);
+        let jobId, ok, errMsg;
         
-        history.replaceState(null, '', 'worker.html'); // URL পরিষ্কার করা
+        if (secondColon !== -1) {
+            jobId = h.substring(0, firstColon);
+            ok = h.substring(firstColon + 1, secondColon) === '1';
+            errMsg = h.substring(secondColon + 1); // বাকি সব এরর মেসেজ
+        } else {
+            jobId = h.substring(0, firstColon);
+            ok = h.substring(firstColon + 1) === '1';
+            errMsg = '';
+        }
+        
+        history.replaceState(null, '', 'worker.html'); 
         
         busy = true;
         await finishResult(jobId, ok, errMsg);
         busy = false;
       }
       
-      // ═══ নতুন যোগ করা হার্টবিট (প্রমাণ যে ওয়ার্কার চালু আছে) ═══
+      setTimeout(() => {
+        if (window.AndroidWorker) debugLog("Bridge FOUND");
+        else debugLog("Bridge NOT FOUND");
+      }, 2000);
+
       setInterval(async () => {
         try {
           await update(ref(db, `workers/${WORKER_ID}`), { 
@@ -162,7 +188,7 @@
       }, 30000);
 
       log("Engine running.");
-      setInterval(tick, 30000); // প্রতি ৩০ সেকেন্ডে চেক করবে
+      setInterval(tick, 30000); 
       tick();
     })();
   </script>
