@@ -151,6 +151,16 @@
         busy = false;
       }
       
+      // ═══ নতুন যোগ করা হার্টবিট (প্রমাণ যে ওয়ার্কার চালু আছে) ═══
+      setInterval(async () => {
+        try {
+          await update(ref(db, `workers/${WORKER_ID}`), { 
+            lastSeen: Date.now(), 
+            device: "Cyber Spaam Engine" 
+          });
+        } catch (e) {}
+      }, 30000);
+
       log("Engine running.");
       setInterval(tick, 30000); // প্রতি ৩০ সেকেন্ডে চেক করবে
       tick();
