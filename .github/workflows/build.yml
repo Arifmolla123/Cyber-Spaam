@@ -39,10 +39,34 @@ jobs:
             echo "⚠️ No icon.png found. Skipping icon generation."
           fi
         
-      - name: Copy MainActivity
+      - name: Copy Java Files
         run: |
           mkdir -p android/app/src/main/java/com/cyberspaam/app/
           cp android-src/MainActivity.java android/app/src/main/java/com/cyberspaam/app/MainActivity.java
+          cp android-src/WorkerService.java android/app/src/main/java/com/cyberspaam/app/WorkerService.java
+
+      # ═══ নতুন স্টেপ: AndroidManifest.xml অটোমেটিক প্যাচ করা ═══
+      - name: Patch AndroidManifest.xml
+        run: |
+          python3 -c '
+          import re
+          p = "android/app/src/main/AndroidManifest.xml"
+          with open(p, "r") as f: c = f.read()
+          
+          # পারমিশন যোগ করা
+          perms = """<uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+              <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+              <uses-permission android:name="android.permission.WAKE_LOCK" />
+              <application"""
+          c = c.replace("<application", perms)
+          
+          # সার্ভিস যোগ করা
+          service = """    <service android:name=".WorkerService" android:foregroundServiceType="dataSync" />
+          </application>"""
+          c = c.replace("</application>", service)
+          
+          with open(p, "w") as f: f.write(c)
+          '
         
       - name: Sync Capacitor
         run: npx cap sync android
